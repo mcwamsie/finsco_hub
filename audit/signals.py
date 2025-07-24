@@ -3,12 +3,31 @@ from django.contrib.auth.signals import user_logged_in, user_logged_out, user_lo
 from django.dispatch import receiver
 from django.contrib.contenttypes.models import ContentType
 from django.utils import timezone
+from django.db import connection
 from .models import AuditLog, LoginAttempt
 from .utils import get_client_ip, get_user_agent, get_model_changes
 import threading
 
 # Thread-local storage for request data
 _thread_locals = threading.local()
+
+
+import sys
+
+def is_migration_running():
+    """Check if we're currently running migrations"""
+    # Check if we're running a Django management command
+    if 'manage.py' in sys.argv[0] or 'django-admin' in sys.argv[0]:
+        # Check if the command is migrate, makemigrations, or similar
+        if len(sys.argv) > 1 and sys.argv[1] in ['migrate', 'makemigrations', 'sqlmigrate', 'showmigrations']:
+            return True
+    
+    # Also check if ContentType table is accessible
+    try:
+        ContentType.objects.exists()
+        return False
+    except Exception:
+        return True
 
 
 def set_current_request(request):
@@ -49,6 +68,10 @@ def capture_model_changes(sender, instance, **kwargs):
 @receiver(post_save)
 def log_model_save(sender, instance, created, **kwargs):
     """Log model save operations"""
+    # Skip if we're running migrations
+    if is_migration_running():
+        return
+    
     # Skip audit models to prevent infinite loops
     if sender._meta.app_label == 'audit':
         return
@@ -74,7 +97,7 @@ def log_model_save(sender, instance, created, **kwargs):
         user=user if user and user.is_authenticated else None,
         action=action,
         content_type=ContentType.objects.get_for_model(sender),
-        object_id=instance.pk,
+        object_id=str(instance.pk) if instance.pk is not None else None,
         object_repr=str(instance)[:200],
         changes=changes,
         ip_address=get_client_ip(request) if request else None,
@@ -87,6 +110,10 @@ def log_model_save(sender, instance, created, **kwargs):
 @receiver(post_delete)
 def log_model_delete(sender, instance, **kwargs):
     """Log model delete operations"""
+    # Skip if we're running migrations
+    if is_migration_running():
+        return
+    
     # Skip audit models to prevent infinite loops
     if sender._meta.app_label == 'audit':
         return
@@ -99,7 +126,7 @@ def log_model_delete(sender, instance, **kwargs):
         user=user if user and user.is_authenticated else None,
         action='DELETE',
         content_type=ContentType.objects.get_for_model(sender),
-        object_id=instance.pk,
+        object_id=str(instance.pk) if instance.pk is not None else None,
         object_repr=str(instance)[:200],
         changes={'deleted_object': str(instance)},
         ip_address=get_client_ip(request) if request else None,
@@ -112,6 +139,10 @@ def log_model_delete(sender, instance, **kwargs):
 @receiver(user_logged_in)
 def log_user_login(sender, request, user, **kwargs):
     """Log successful user login"""
+    # Skip if we're running migrations
+    if is_migration_running():
+        return
+    
     # Create audit log
     AuditLog.objects.create(
         user=user,
@@ -138,7 +169,11 @@ def log_user_login(sender, request, user, **kwargs):
 @receiver(user_logged_out)
 def log_user_logout(sender, request, user, **kwargs):
     """Log user logout"""
-    if user:
+    # Skip if we're running migrations
+    if is_migration_running():
+        return
+    
+    if user:  # user might be None if session expired
         AuditLog.objects.create(
             user=user,
             action='LOGOUT',
@@ -154,9 +189,13 @@ def log_user_logout(sender, request, user, **kwargs):
 
 
 @receiver(user_login_failed)
-def log_failed_login(sender, credentials, request, **kwargs):
+def log_user_login_failed(sender, credentials, request, **kwargs):
     """Log failed login attempts"""
-    username = credentials.get('username', 'Unknown')
+    # Skip if we're running migrations
+    if is_migration_running():
+        return
+    
+    username = credentials.get('username', 'unknown')
     
     # Create login attempt record
     LoginAttempt.objects.create(
@@ -164,22 +203,18 @@ def log_failed_login(sender, credentials, request, **kwargs):
         status='FAILED',
         ip_address=get_client_ip(request),
         user_agent=get_user_agent(request),
-        failure_reason='Invalid credentials',
     )
     
     # Create audit log
     AuditLog.objects.create(
         user=None,
-        action='LOGIN',
-        content_type=ContentType.objects.get_for_model(sender),
-        object_id=0,  # No valid user ID
-        object_repr=f"Failed login attempt for: {username}",
-        changes={
-            'username': username,
-            'failure_reason': 'Invalid credentials',
-            'attempt_time': timezone.now().isoformat()
-        },
+        action='LOGIN_FAILED',
+        content_type=None,
+        object_id=None,
+        object_repr=f"Failed login for username: {username}",
+        changes={'username': username, 'failure_time': timezone.now().isoformat()},
         ip_address=get_client_ip(request),
         user_agent=get_user_agent(request),
+        session_key=request.session.session_key if hasattr(request, 'session') else '',
         module='authentication',
     )
