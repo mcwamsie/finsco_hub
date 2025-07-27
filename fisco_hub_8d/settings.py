@@ -6,10 +6,10 @@ from datetime import timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+APP_NAME = config('APP_NAME', default='Finsco Hub')
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = config('SECRET_KEY', default='django-insecure-development-key-change-in-production-abcdefghijklmnopqrstuvwxyz0123456789')
-
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=True, cast=bool)
 
@@ -35,6 +35,7 @@ THIRD_PARTY_APPS = [
     'import_export',
     # 'simple_history',
     'phonenumber_field',
+    'active_link',
     # 'crispy_forms',
     # 'crispy_bootstrap4',
     'sequences',
@@ -47,12 +48,11 @@ THIRD_PARTY_APPS = [
     'django_countries',
     'django_tables2',
     'django_select2',
+    "audit",
 ]
 
 LOCAL_APPS = [
     # "fisco_hub_8d.users",
-    "audit.apps.AuditConfig",
-    "notifications.apps.NotificationsConfig",
     'authentication.apps.AuthenticationConfig',
     'configurations.apps.ConfigurationsConfig',
     # 'membership.apps.MembershipConfig',
@@ -79,6 +79,7 @@ MIDDLEWARE = [
     'audit.middleware.AuditMiddleware',
     'audit.middleware.SecurityAuditMiddleware',
     # 'configurations.middleware.TimezoneMiddleware',
+    'django_htmx.middleware.HtmxMiddleware',
 ]
 
 ROOT_URLCONF = 'fisco_hub_8d.urls'
@@ -94,6 +95,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'configurations.global_context.application_settings',
                 # 'configurations.context_processors.global_settings',
                 # 'configurations.context_processors.user_permissions',
             ],
@@ -332,6 +334,7 @@ CACHES = {
     }
 }
 
+PAGINATE_BY = config('PAGINATE_BY', default=1, cast=int)
 # Channels Configuration (WebSocket)
 # CHANNEL_LAYERS = {
 #     'default': {
@@ -527,6 +530,11 @@ if 'test' in sys.argv or 'pytest' in sys.modules:
 
 
     MIGRATION_MODULES = DisableMigrations()
+
+# Authentication URLs
+LOGIN_URL = 'authentication:login'
+LOGIN_REDIRECT_URL = 'configurations:dashboard'
+LOGOUT_REDIRECT_URL = 'authentication:login'
 
 # Ensure logs directory exists
 import sys

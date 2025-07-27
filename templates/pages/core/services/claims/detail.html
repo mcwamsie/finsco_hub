@@ -1,0 +1,335 @@
+{% extends 'layouts/core/base.html' %}
+{% load static %}
+
+{% block title %}
+    Claim: {{ claim.transaction_number }}
+{% endblock %}
+
+{% block content %}
+    <!-- Header -->
+    <div class="bg-white border-b border-gray-200 px-6 py-4">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+                <nav class="flex" aria-label="Breadcrumb">
+                    <ol class="inline-flex items-center space-x-1 md:space-x-3">
+                        <li class="inline-flex items-center">
+                            <a href="{% url 'services:dashboard' %}"
+                               class="inline-flex items-center text-sm font-medium text-gray-700 hover:text-blue-600">
+                                <i class="bi bi-house-door mr-2"></i>
+                                Services
+                            </a>
+                        </li>
+                        <li>
+                            <div class="flex items-center">
+                                <i class="bi bi-chevron-right text-gray-400"></i>
+                                <a href="{% url 'services:claims' %}"
+                                   class="ml-1 text-sm font-medium text-gray-700 hover:text-blue-600 md:ml-2">Claims</a>
+                            </div>
+                        </li>
+                        <li aria-current="page">
+                            <div class="flex items-center">
+                                <i class="bi bi-chevron-right text-gray-400"></i>
+                                <span class="ml-1 text-sm font-medium text-gray-500 md:ml-2">{{ claim.transaction_number }}</span>
+                            </div>
+                        </li>
+                    </ol>
+                </nav>
+                <h1 class="mt-2 text-lg font-bold text-gray-900">Claim Details</h1>
+            </div>
+            <div class="flex items-center space-x-3">
+                <button type="button"
+                        hx-get="{% url 'services:claim_edit' claim.id %}"
+                        hx-target="#edit-claim-modal-container"
+                        hx-trigger="click"
+                        onclick="edit_modal.show()"
+                        hx-indicator="#edit-claim-modal-overlay"
+                        class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-sm shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    <i class="bi bi-pencil-square mr-2"></i>
+                    Edit Claim
+                </button>
+                <a href="{% url 'services:claims' %}"
+                   class="inline-flex items-center px-4 py-2 border border-transparent rounded-sm shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    <i class="bi bi-arrow-left mr-2"></i>
+                    Back to Claims
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Claim Overview Card -->
+    <div class="p-6 flex-1 flex-col flex">
+        <div class="bg-white rounded-sm shadow-sm border border-gray-200 mb-6">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-4">
+                        <div class="h-16 w-16 rounded-full bg-gradient-to-r from-blue-500 to-green-600 flex items-center justify-center overflow-hidden">
+                            <i class="bi bi-file-medical text-white text-2xl"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-lg font-bold text-gray-900">{{ claim.transaction_number }}</h2>
+                            <p class="text-sm text-gray-500">Claim Transaction</p>
+                            <p class="text-xs font-medium text-blue-600">
+                                <a href="{% url 'membership:beneficiaries_detail' claim.beneficiary.id %}" class="hover:text-blue-800">
+                                    Beneficiary: {{ claim.beneficiary.first_name }} {{ claim.beneficiary.last_name }}
+                                </a>
+                            </p>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <div class="text-right">
+                            <p class="text-sm text-gray-500">Status</p>
+                            {% if claim.status == 'A' %}
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                    <i class="bi bi-check-circle mr-1"></i>
+                                    Approved
+                                </span>
+                            {% elif claim.status == 'N' %}
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                    <i class="bi bi-clock mr-1"></i>
+                                    New
+                                </span>
+                            {% elif claim.status == 'R' %}
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                    <i class="bi bi-x-circle mr-1"></i>
+                                    Rejected
+                                </span>
+                            {% else %}
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                    <i class="bi bi-question-circle mr-1"></i>
+                                    {{ claim.get_status_display }}
+                                </span>
+                            {% endif %}
+                        </div>
+                        <div class="text-right">
+                            <p class="text-sm text-gray-500">Amount</p>
+                            <span class="text-lg font-bold text-gray-900">${{ claim.claimed_amount }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabs Navigation -->
+        <div class="bg-white flex-1 rounded-sm shadow-sm border border-gray-200">
+            <div class="border-b border-gray-200 max-w-full overflow-x-auto overflow-hidden">
+                <nav class="-mb-px flex space-x-8 px-6" aria-label="Tabs">
+                    <button class="tab-button border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm active"
+                            data-tab="overview">
+                        <i class="bi bi-file-medical mr-2"></i>
+                        Overview
+                    </button>
+                    <button class="tab-button border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm"
+                            data-tab="services">
+                        <i class="bi bi-list-ul mr-2"></i>
+                        Services
+                    </button>
+                    <button class="tab-button border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm"
+                            data-tab="documents">
+                        <i class="bi bi-file-earmark mr-2"></i>
+                        Documents
+                    </button>
+                </nav>
+            </div>
+
+            <!-- Tab Content -->
+            <div class="p-4 md:p-6">
+                <!-- Overview Tab -->
+                <div id="overview-tab" class="tab-content">
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <!-- Claim Information -->
+                        <div class="bg-gray-50 rounded-lg p-6">
+                            <h3 class="text-lg font-semibold text-gray-900 mb-4">Claim Information</h3>
+                            <dl class="space-y-3">
+                                <div class="flex justify-between">
+                                    <dt class="text-sm font-medium text-gray-500">Transaction Number</dt>
+                                    <dd class="text-sm font-mono text-gray-900">{{ claim.transaction_number }}</dd>
+                                </div>
+                                <div class="flex justify-between">
+                                    <dt class="text-sm font-medium text-gray-500">Invoice Number</dt>
+                                    <dd class="text-sm font-mono text-gray-900">{{ claim.invoice_number|default:"Not provided" }}</dd>
+                                </div>
+                                <div class="flex justify-between">
+                                    <dt class="text-sm font-medium text-gray-500">Claimed Amount</dt>
+                                    <dd class="text-sm text-gray-900 font-semibold">${{ claim.claimed_amount }}</dd>
+                                </div>
+                                <div class="flex justify-between">
+                                    <dt class="text-sm font-medium text-gray-500">Adjudicated Amount</dt>
+                                    <dd class="text-sm text-gray-900 font-semibold">${{ claim.adjudicated_amount|default:"Pending" }}</dd>
+                                </div>
+                                <div class="flex justify-between">
+                                    <dt class="text-sm font-medium text-gray-500">Status</dt>
+                                    <dd class="text-sm text-gray-900">{{ claim.get_status_display }}</dd>
+                                </div>
+                                <div class="flex justify-between">
+                                    <dt class="text-sm font-medium text-gray-500">Start Date</dt>
+                                    <dd class="text-sm text-gray-900">{{ claim.start_date|date:"M d, Y" }}</dd>
+                                </div>
+                                <div class="flex justify-between">
+                                    <dt class="text-sm font-medium text-gray-500">End Date</dt>
+                                    <dd class="text-sm text-gray-900">{{ claim.end_date|date:"M d, Y" }}</dd>
+                                </div>
+                                <div class="flex justify-between">
+                                    <dt class="text-sm font-medium text-gray-500">Created Date</dt>
+                                    <dd class="text-sm text-gray-900">{{ claim.created_at|date:"M d, Y H:i" }}</dd>
+                                </div>
+                            </dl>
+                        </div>
+
+                        <!-- Beneficiary Information -->
+                        <div class="bg-gray-50 rounded-lg p-6">
+                            <h3 class="text-lg font-semibold text-gray-900 mb-4">Beneficiary Information</h3>
+                            <dl class="space-y-3">
+                                <div class="flex justify-between">
+                                    <dt class="text-sm font-medium text-gray-500">Name</dt>
+                                    <dd class="text-sm text-gray-900">
+                                        <a href="{% url 'membership:beneficiaries_detail' claim.beneficiary.id %}" class="text-blue-600 hover:text-blue-800">
+                                            {{ claim.beneficiary.first_name }} {{ claim.beneficiary.last_name }}
+                                        </a>
+                                    </dd>
+                                </div>
+                                <div class="flex justify-between">
+                                    <dt class="text-sm font-medium text-gray-500">Membership Number</dt>
+                                    <dd class="text-sm font-mono text-gray-900">{{ claim.beneficiary.membership_number }}</dd>
+                                </div>
+                                <div class="flex justify-between">
+                                    <dt class="text-sm font-medium text-gray-500">Type</dt>
+                                    <dd class="text-sm text-gray-900">{{ claim.beneficiary.get_type_display }}</dd>
+                                </div>
+                                <div class="flex justify-between">
+                                    <dt class="text-sm font-medium text-gray-500">Status</dt>
+                                    <dd class="text-sm text-gray-900">{{ claim.beneficiary.get_status_display }}</dd>
+                                </div>
+                            </dl>
+                        </div>
+
+                        <!-- Provider Information -->
+                        <div class="bg-gray-50 rounded-lg p-6">
+                            <h3 class="text-lg font-semibold text-gray-900 mb-4">Provider Information</h3>
+                            <dl class="space-y-3">
+                                <div class="flex justify-between">
+                                    <dt class="text-sm font-medium text-gray-500">Provider Name</dt>
+                                    <dd class="text-sm text-gray-900">{{ claim.provider.name|default:"Not specified" }}</dd>
+                                </div>
+                                <div class="flex justify-between">
+                                    <dt class="text-sm font-medium text-gray-500">Provider Code</dt>
+                                    <dd class="text-sm font-mono text-gray-900">{{ claim.provider.code|default:"Not specified" }}</dd>
+                                </div>
+                                <div class="flex justify-between">
+                                    <dt class="text-sm font-medium text-gray-500">Created By</dt>
+                                    <dd class="text-sm text-gray-900">{{ claim.user.get_full_name|default:claim.user.username }}</dd>
+                                </div>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Services Tab -->
+                <div id="services-tab" class="tab-content hidden">
+                    <div class="bg-white rounded-lg border border-gray-200">
+                        <div class="px-6 py-4 border-b border-gray-200">
+                            <h3 class="text-lg font-semibold text-gray-900">Service Lines</h3>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Service</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Unit Price</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                                    {% for service_line in service_lines %}
+                                    <tr>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div>
+                                                <div class="text-sm font-medium text-gray-900">{{ service_line.service.description }}</div>
+                                                <div class="text-sm text-gray-500">{{ service_line.service.code }}</div>
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ service_line.quantity }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${{ service_line.unit_price }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${{ service_line.total_amount }}</td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="4" class="px-6 py-4 text-center text-sm text-gray-500">No service lines found</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Documents Tab -->
+                <div id="documents-tab" class="tab-content hidden">
+                    <div class="bg-white rounded-lg border border-gray-200">
+                        <div class="px-6 py-4 border-b border-gray-200">
+                            <h3 class="text-lg font-semibold text-gray-900">Claim Documents</h3>
+                        </div>
+                        <div class="p-6">
+                            <div class="text-center py-8">
+                                <i class="bi bi-file-earmark text-4xl text-gray-400 mb-4"></i>
+                                <p class="text-gray-500">No documents uploaded for this claim</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Claim Modal Container -->
+    <div id="edit-claim-modal-container"></div>
+{% endblock %}
+
+{% block sidebar %}
+    {% include 'layouts/core/sidebar/services.html' %}
+{% endblock %}
+
+{% block modals %}
+    {% include "pages/core/services/partials/claim-list/edit-modal.html" with modal_id="edit-claim-modal" %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Tab functionality
+    const tabButtons = document.querySelectorAll('.tab-button');
+    const tabContents = document.querySelectorAll('.tab-content');
+
+    tabButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const tabId = button.getAttribute('data-tab');
+            
+            // Remove active class from all buttons and contents
+            tabButtons.forEach(btn => {
+                btn.classList.remove('active', 'border-blue-500', 'text-blue-600');
+                btn.classList.add('border-transparent', 'text-gray-500');
+            });
+            tabContents.forEach(content => content.classList.add('hidden'));
+            
+            // Add active class to clicked button and show corresponding content
+            button.classList.add('active', 'border-blue-500', 'text-blue-600');
+            button.classList.remove('border-transparent', 'text-gray-500');
+            document.getElementById(tabId + '-tab').classList.remove('hidden');
+        });
+    });
+
+    // Initialize edit modal
+    const $editClaimModalElement = document.getElementById('edit-claim-modal');
+    if ($editClaimModalElement) {
+        const modalOptions = {
+            placement: 'bottom-right',
+            backdrop: 'dynamic',
+            backdropClasses: 'bg-gray-900/50 fixed inset-0 z-40',
+            closable: true,
+        };
+        const editModalInstanceOptions = {id: 'edit-claim-modal', override: true};
+        window.edit_modal = new Modal($editClaimModalElement, modalOptions, editModalInstanceOptions);
+    }
+});
+</script>
+{% endblock %}

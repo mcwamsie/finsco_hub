@@ -1,0 +1,172 @@
+{% extends 'layouts/core/base.html' %}
+{% load static %}
+
+{% block title %}Membership Dashboard{% endblock %}
+
+{% block content %}
+<div class="flex-1">
+    <!-- Header -->
+    {% include "pages/core/membership/partials/dashboard/header.html" %}
+
+
+    {% include "pages/core/membership/partials/dashboard/toolbar.html" %}
+
+
+
+    <!-- Dashboard Stats -->
+    <div class="bg-white px-4 py-4 border-b">
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4">
+            <div class="bg-blue-50 p-4 rounded-lg">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-blue-600 font-medium">Total Members</p>
+                        <p class="text-2xl font-bold text-blue-800">{{ total_members }}</p>
+                    </div>
+                    <i class="bi bi-people text-blue-600 text-2xl"></i>
+                </div>
+            </div>
+            <div class="bg-green-50 p-4 rounded-lg">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-green-600 font-medium">Active Members</p>
+                        <p class="text-2xl font-bold text-green-800">{{ active_members }}</p>
+                    </div>
+                    <i class="bi bi-check-circle text-green-600 text-2xl"></i>
+                </div>
+            </div>
+            <div class="bg-yellow-50 p-4 rounded-lg">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-yellow-600 font-medium">Pending Applications</p>
+                        <p class="text-2xl font-bold text-yellow-800">{{ pending_applications }}</p>
+                    </div>
+                    <i class="bi bi-clock text-yellow-600 text-2xl"></i>
+                </div>
+            </div>
+            <div class="bg-purple-50 p-4 rounded-lg">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-purple-600 font-medium">Total Beneficiaries</p>
+                        <p class="text-2xl font-bold text-purple-800">{{ total_beneficiaries }}</p>
+                    </div>
+                    <i class="bi bi-person-hearts text-purple-600 text-2xl"></i>
+                </div>
+            </div>
+            <div class="bg-orange-50 p-4 rounded-lg">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-orange-600 font-medium">Total TopUps</p>
+                        <p class="text-2xl font-bold text-orange-800">{{ total_topups }}</p>
+                    </div>
+                    <i class="bi bi-credit-card text-orange-600 text-2xl"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% comment %}
+	    <!-- Member List Container -->
+    <div id="member-list-container"
+         hx-get="{% url 'membership:member_list' %}"
+         hx-trigger="load">
+        <!-- Member list will be loaded here via HTMX -->
+        <div class="flex items-center justify-center py-12">
+            <div class="text-center">
+                <i class="bi bi-people text-4xl text-gray-400 mb-4"></i>
+                <p class="text-gray-500">Loading members...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="bg-white border-t px-6 py-4">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Recent Members -->
+            <div>
+                <h3 class="text-lg font-semibold mb-4">Recent Members</h3>
+                <div class="space-y-3">
+                    {% for member in recent_members %}
+                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                                <i class="bi bi-person text-blue-600"></i>
+                            </div>
+                            <div>
+                                <p class="font-medium">{{ member.name }}</p>
+                                <p class="text-sm text-gray-500">{{ member.membership_number }}</p>
+                            </div>
+                        </div>
+                        <span class="text-xs text-gray-500">{{ member.created_at|timesince }} ago</span>
+                    </div>
+                    {% empty %}
+                    <p class="text-gray-500 text-center py-4">No recent members</p>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Recent Top-ups -->
+            <div>
+                <h3 class="text-lg font-semibold mb-4">Recent Top-ups</h3>
+                <div class="space-y-3">
+                    {% for topup in recent_topups %}
+                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                                <i class="bi bi-arrow-up text-green-600"></i>
+                            </div>
+                            <div>
+                                <p class="font-medium">{{ topup.member.name }}</p>
+                                <p class="text-sm text-gray-500">{{ topup.amount }} {{ topup.account.currency.code }}</p>
+                            </div>
+                        </div>
+                        <span class="text-xs text-gray-500">{{ topup.created_at|timesince }} ago</span>
+                    </div>
+                    {% empty %}
+                    <p class="text-gray-500 text-center py-4">No recent top-ups</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Notification -->
+    <div class="bg-blue-50 border-t border-blue-200 px-6 py-3">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <i class="bi bi-people text-blue-600"></i>
+                <span class="text-sm text-blue-800">Membership management dashboard. Use the toolbar above to filter, sort, and manage members.</span>
+            </div>
+            <i class="bi bi-x text-blue-600 hover:text-blue-800 cursor-pointer"></i>
+        </div>
+    </div>
+{% endcomment %}
+
+
+</div>
+
+<!-- Modal Container -->
+<div id="modal-container"></div>
+
+<script>
+// Auto-load member list on page load
+document.addEventListener('DOMContentLoaded', function() {
+    // Trigger the member list load
+    htmx.trigger('#member-list-container', 'load');
+});
+
+// Handle modal close
+document.addEventListener('htmx:afterSwap', function(event) {
+    if (event.detail.target.id === 'modal-container') {
+        // Show modal
+        const modal = event.detail.target.querySelector('.modal');
+        if (modal) {
+            modal.classList.remove('hidden');
+        }
+    }
+});
+</script>
+{% endblock %}
+
+{% block sidebar %}
+	{% include 'layouts/core/sidebar/membership.html' %}
+{% endblock %}

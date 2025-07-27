@@ -1,0 +1,73 @@
+{% load static %}
+
+<!-- Toolbar -->
+<div class="bg-white px-4 py-3 border-b flex items-center justify-between">
+    <div class="flex items-center gap-4 divide-x divide-gray-400">
+        <button
+                hx-get="{% url 'services:service_request_create' %}"
+                hx-target="#new-request-modal-container"
+                hx-trigger="click"
+                onclick="new_modal.show()"
+                hx-indicator="#new-request-modal-overlay"
+                class="flex items-center space-x-2 text-sm text-gray-600 hover:text-gray-800">
+            <i class="bi bi-plus h-4 w-4"></i>
+            <span>New Request</span>
+        </button>
+        <button class="flex items-center space-x-2 pl-4 text-sm text-gray-600 hover:text-gray-800">
+            <i class="bi bi-clock-history"></i>
+            <span>Pending Requests</span>
+        </button>
+    </div>
+    <button class="flex items-center space-x-2 text-sm text-gray-600 hover:text-gray-800">
+        <i class="bi bi-share"></i>
+        <span>Share and sync</span>
+    </button>
+</div>
+
+<!-- Quick Stats -->
+<div class="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4 px-4">
+    <div class="bg-blue-50 rounded-lg p-3">
+        <div class="flex items-center">
+            <div class="flex-shrink-0">
+                <i class="bi bi-clipboard-check text-blue-600 text-lg"></i>
+            </div>
+            <div class="ml-3">
+                <p class="text-sm font-medium text-blue-900">Total</p>
+                <p class="text-lg font-semibold text-blue-600">{{ total_requests|default:0 }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="bg-yellow-50 rounded-lg p-3">
+        <div class="flex items-center">
+            <div class="flex-shrink-0">
+                <i class="bi bi-clock text-yellow-600 text-lg"></i>
+            </div>
+            <div class="ml-3">
+                <p class="text-sm font-medium text-yellow-900">Pending</p>
+                <p class="text-lg font-semibold text-yellow-600">{{ pending_requests|default:0 }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="bg-green-50 rounded-lg p-3">
+        <div class="flex items-center">
+            <div class="flex-shrink-0">
+                <i class="bi bi-check-circle text-green-600 text-lg"></i>
+            </div>
+            <div class="ml-3">
+                <p class="text-sm font-medium text-green-900">Approved</p>
+                <p class="text-lg font-semibold text-green-600">{{ approved_requests|default:0 }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="bg-red-50 rounded-lg p-3">
+        <div class="flex items-center">
+            <div class="flex-shrink-0">
+                <i class="bi bi-x-circle text-red-600 text-lg"></i>
+            </div>
+            <div class="ml-3">
+                <p class="text-sm font-medium text-red-900">Declined</p>
+                <p class="text-lg font-semibold text-red-600">{{ declined_requests|default:0 }}</p>
+            </div>
+        </div>
+    </div>
+</div>

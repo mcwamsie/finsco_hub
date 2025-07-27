@@ -1,0 +1,123 @@
+{% load static %}
+
+<div id="sidebar" class="w-70 lg:w-72 bg-white border-r border-gray-200 fixed lg:relative h-full z-20 transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out">
+    <!-- Table Selector -->
+    <div class="px-4 py-4 border-b border-gray-200">
+        <div class="flex items-center gap-2 text-sm font-medium text-gray-800 mb-4">
+            <i class="bi bi-table"></i>
+            {{ current_table|default:"Table 1" }}
+            <i class="bi bi-chevron-down text-xs"></i>
+        </div>
+        <div class="flex items-center gap-2 text-blue-500 text-sm cursor-pointer hover:text-blue-600">
+            <i class="bi bi-plus-circle"></i>
+{#            <a href="{% url 'import_data' %}">Add or import</a>#}
+            <a href="#">Add or import</a>
+        </div>
+    </div>
+
+    <!-- Views Section -->
+    <div class="p-4">
+        <div class="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2 flex items-center gap-1">
+            <i class="bi bi-folder"></i>
+            Views
+        </div>
+        <div class="mb-4 relative">
+            <i class="bi bi-search absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400 text-xs"></i>
+            <input type="text" class="w-full pl-6 pr-2 py-1.5 border border-gray-300 rounded text-sm bg-gray-50" placeholder="Find a view" id="view-search">
+        </div>
+        <div class="space-y-0.5" id="views-list">
+            <div class="flex items-center gap-2 px-2 py-1.5 {% if view_type == 'grid' %}bg-blue-50 text-blue-700{% else %}text-gray-700 hover:bg-gray-50{% endif %} rounded cursor-pointer">
+                <i class="bi bi-grid-3x3-gap w-4 h-4 flex items-center justify-center"></i>
+{#                <a href="{% url 'grid_view' %}" class="flex-1">Grid view</a>#}
+                <a href="#" class="flex-1">Grid view</a>
+            </div>
+            <div class="flex items-center gap-2 px-2 py-1.5 {% if view_type == 'list' %}bg-blue-50 text-blue-700{% else %}text-gray-700 hover:bg-gray-50{% endif %} rounded cursor-pointer">
+                <i class="bi bi-list-ul w-4 h-4 flex items-center justify-center"></i>
+{#                <a href="{% url 'list_view' %}" class="flex-1">List view</a>#}
+                <a href="@" class="flex-1">List view</a>
+            </div>
+            <div class="flex items-center gap-2 px-2 py-1.5 {% if view_type == 'form' %}bg-blue-50 text-blue-700{% else %}text-gray-700 hover:bg-gray-50{% endif %} rounded cursor-pointer">
+                <i class="bi bi-file-text w-4 h-4 flex items-center justify-center"></i>
+{#                <a href="{% url 'form_view' %}" class="flex-1">Form view</a>#}
+                <a href="#" class="flex-1">Form view</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Section -->
+    <div class="px-4">
+        <div class="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">Create...</div>
+        <div class="space-y-0.5">
+            <div class="flex items-center gap-2 px-2 py-1.5 text-gray-700 text-sm cursor-pointer hover:bg-gray-50 rounded">
+                <i class="bi bi-grid-3x3-gap w-4 h-4"></i>
+                <span class="flex-1">Grid</span>
+                <i class="bi bi-plus text-gray-400"></i>
+            </div>
+            <div class="flex items-center gap-2 px-2 py-1.5 text-gray-700 text-sm cursor-pointer hover:bg-gray-50 rounded">
+                <i class="bi bi-calendar w-4 h-4"></i>
+                <span class="flex-1">Calendar</span>
+                <i class="bi bi-plus text-gray-400"></i>
+            </div>
+            <div class="flex items-center gap-2 px-2 py-1.5 text-gray-700 text-sm cursor-pointer hover:bg-gray-50 rounded">
+                <i class="bi bi-images w-4 h-4"></i>
+                <span class="flex-1">Gallery</span>
+                <i class="bi bi-plus text-gray-400"></i>
+            </div>
+            <div class="flex items-center gap-2 px-2 py-1.5 text-gray-700 text-sm cursor-pointer hover:bg-gray-50 rounded">
+                <i class="bi bi-kanban w-4 h-4"></i>
+                <span class="flex-1">Kanban</span>
+                <i class="bi bi-plus text-gray-400"></i>
+            </div>
+            {% if user.is_premium %}
+                <div class="flex items-center gap-2 px-2 py-1.5 text-gray-700 text-sm cursor-pointer hover:bg-gray-50 rounded">
+                    <i class="bi bi-diagram-3 w-4 h-4"></i>
+                    <span class="flex-1">Timeline</span>
+                    <span class="bg-blue-200 text-blue-700 text-xs px-2 py-0.5 rounded-full">Team</span>
+                    <i class="bi bi-plus text-gray-400"></i>
+                </div>
+                <div class="flex items-center gap-2 px-2 py-1.5 text-gray-700 text-sm cursor-pointer hover:bg-gray-50 rounded">
+                    <i class="bi bi-bar-chart w-4 h-4"></i>
+                    <span class="flex-1">Gantt</span>
+                    <span class="bg-blue-200 text-blue-700 text-xs px-2 py-0.5 rounded-full">Team</span>
+                    <i class="bi bi-plus text-gray-400"></i>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Form Section -->
+    <div class="px-4 mt-6">
+        <div class="flex items-center gap-2 px-2 py-1.5 text-gray-700 text-sm cursor-pointer hover:bg-gray-50 rounded">
+            <i class="bi bi-file-text w-4 h-4"></i>
+{#            <a href="{% url 'create_form' %}" class="flex-1">Form</a>#}
+            <a href="#" class="flex-1">Form</a>
+            <i class="bi bi-plus text-gray-400"></i>
+        </div>
+    </div>
+
+    <!-- Tabs Section -->
+    <div class="px-4 py-4 border-t border-gray-200 mt-auto">
+        <div class="flex items-center gap-2 text-sm text-gray-700">
+            <i class="bi bi-collection"></i>
+            Tabs
+            <i class="bi bi-chevron-down text-xs"></i>
+        </div>
+    </div>
+</div>
+
+<script>
+    // View search functionality
+    document.getElementById('view-search').addEventListener('input', function(e) {
+        const searchTerm = e.target.value.toLowerCase();
+        const viewItems = document.querySelectorAll('#views-list > div');
+
+        viewItems.forEach(item => {
+            const text = item.textContent.toLowerCase();
+            if (text.includes(searchTerm)) {
+                item.style.display = 'flex';
+            } else {
+                item.style.display = 'none';
+            }
+        });
+    });
+</script>

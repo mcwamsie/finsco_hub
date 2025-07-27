@@ -1,0 +1,17 @@
+<form id="email-login-form"
+      class="login-form active"
+      hx-post="{% url 'authentication:email_login' %}"
+      hx-target="#email-login-form"
+      hx-swap="outerHTML"
+      novalidate
+      hx-indicator="#loading-indicator">
+    {% csrf_token %}
+
+    <div class="space-y-4">
+        {% include 'components/non-field-errors.html' %}
+
+        {% include 'components/field.html' with field=form.email %}
+
+        {% include 'components/submit-button.html' with submit_text="Send 4 Digit Code" loading_text="Sending......" %}
+    </div>
+</form>

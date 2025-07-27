@@ -1,0 +1,82 @@
+<!-- TopUp Quick Stats Partial -->
+<div class="row g-3">
+    <div class="col-md-3">
+        <div class="card border-0 bg-light">
+            <div class="card-body text-center">
+                <div class="d-flex align-items-center justify-content-center mb-2">
+                    <i class="bi bi-credit-card text-primary me-2"></i>
+                    <h6 class="mb-0">Member TopUps</h6>
+                </div>
+                <h4 class="text-primary mb-0">{{ member_topups_count }}</h4>
+                <small class="text-muted">Total TopUps</small>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card border-0 bg-light">
+            <div class="card-body text-center">
+                <div class="d-flex align-items-center justify-content-center mb-2">
+                    <i class="bi bi-currency-dollar text-success me-2"></i>
+                    <h6 class="mb-0">Total Amount</h6>
+                </div>
+                <h4 class="text-success mb-0">{{ member_total_amount|floatformat:2 }}</h4>
+                <small class="text-muted">Approved TopUps</small>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card border-0 bg-light">
+            <div class="card-body text-center">
+                <div class="d-flex align-items-center justify-content-center mb-2">
+                    <i class="bi bi-calculator text-warning me-2"></i>
+                    <h6 class="mb-0">Net Amount</h6>
+                </div>
+                <h4 class="text-warning mb-0">{{ net_amount|floatformat:2 }}</h4>
+                <small class="text-muted">After Fees</small>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card border-0 bg-light">
+            <div class="card-body text-center">
+                <div class="d-flex align-items-center justify-content-center mb-2">
+                    <i class="bi bi-circle-fill text-info me-2"></i>
+                    <h6 class="mb-0">Status</h6>
+                </div>
+                <span class="badge bg-{% if topup.status == 'A' %}success{% elif topup.status == 'P' %}warning{% elif topup.status == 'R' %}danger{% else %}secondary{% endif %} fs-6">
+                    {{ topup.get_status_display }}
+                </span>
+                <small class="text-muted d-block mt-1">Current Status</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Additional Info -->
+<div class="row mt-3">
+    <div class="col-12">
+        <div class="card border-0 bg-light">
+            <div class="card-body">
+                <h6 class="card-title mb-3">
+                    <i class="bi bi-info-circle text-primary me-2"></i>
+                    TopUp Information
+                </h6>
+                <div class="row">
+                    <div class="col-md-6">
+                        <p class="mb-1"><strong>Amount:</strong> {{ topup.amount }} {{ topup.account.currency.code }}</p>
+                        <p class="mb-1"><strong>Member:</strong> {{ topup.member.name }}</p>
+                        <p class="mb-1"><strong>Payment Method:</strong> {{ topup.payment_method }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p class="mb-1"><strong>Mobile Number:</strong> {{ topup.mobile_number|default:"Not provided" }}</p>
+                        <p class="mb-1"><strong>Bank Reference:</strong> {{ topup.bank_reference|default:"Not provided" }}</p>
+                        <p class="mb-1"><strong>Created:</strong> {{ topup.created_at|date:"M d, Y H:i" }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

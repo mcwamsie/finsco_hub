@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from django.db import models
 
 from configurations.models.base_model import BaseModel
@@ -17,6 +19,9 @@ class Beneficiary(BaseModel):
         ("O", "Other"),
     ]
     gender = models.CharField(max_length=1, choices=GENDER_CHOICES, verbose_name="Gender")
+    
+    # Profile Photo
+    photo = models.ImageField(upload_to='beneficiary/photos/', blank=True, null=True, verbose_name="Profile Photo")
 
     # Contact Information
     mobile = models.CharField(max_length=20, blank=True, null=True, verbose_name="Mobile Number")
@@ -27,7 +32,7 @@ class Beneficiary(BaseModel):
 
     # Medical Aid Information
     member = models.ForeignKey('configurations.Member', on_delete=models.CASCADE, related_name="beneficiaries",  verbose_name="Member")
-    membership_number = models.CharField(max_length=8, editable=False, verbose_name="Membership Number")
+    membership_number = models.CharField(max_length=10, editable=False, verbose_name="Membership Number")
     dependent_code = models.CharField(max_length=3, editable=False, verbose_name="Dependent Code")
 
     # Relationship and Status
@@ -49,8 +54,8 @@ class Beneficiary(BaseModel):
     type = models.CharField(max_length=1, choices=TYPE_CHOICES, verbose_name="Type")
 
     # Package and Limits
-    package = models.ForeignKey('configurations.Package', on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Benefit Package")
-    annual_limit = models.DecimalField(max_digits=20, decimal_places=2, default=0, verbose_name="Annual Limit")
+    # package = models.ForeignKey('configurations.Package', on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Benefit Package")
+    # annual_limit = models.DecimalField(max_digits=20, decimal_places=2, default=0, verbose_name="Annual Limit")
 
     # Important Dates
     date_joined = models.DateField(auto_now_add=True, verbose_name="Date Joined")
@@ -67,6 +72,42 @@ class Beneficiary(BaseModel):
 
     def __str__(self):
         return f"{self.membership_number}/{self.dependent_code}: {self.first_name} {self.last_name}"
+
+    @property
+    def get_full_name(self):
+        return f"{self.first_name} {self.last_name}"
+
+    @property
+    def package(self):
+        """
+        Returns the beneficiary's package. If not set, inherits from member's default package.
+        """
+        if  self.member and self.member.default_package:
+            return self.member.default_package
+        return None
+
+    # @package.setter
+    # def package(self, value):
+    #     """
+    #     Sets the beneficiary's package.
+    #     """
+    #     self._package = value
+
+    @property
+    def annual_limit(self):
+        """
+        Returns the beneficiary's annual limit. If not set or 0, inherits from package.
+        """
+        if  self.member.default_package and hasattr(self.member.default_package, 'annual_limit'):
+            return self.member.default_package.annual_limit
+        return Decimal('0.00')
+
+    # @annual_limit.setter
+    # def annual_limit(self, value):
+    #     """
+    #     Sets the beneficiary's annual limit.
+    #     """
+    #     self._annual_limit = value
 
     def save(self, force_insert=False, force_update=False, *args, **kwargs):
         # Set membership number from member
@@ -97,8 +138,8 @@ class Beneficiary(BaseModel):
                 self.principal = principal_member
 
         # Inherit package from member if not set
-        if not self.package and self.member.default_package:
-            self.package = self.member.default_package
+        # if not self._package and self.member.default_package:
+        #     self._package = self.member.default_package
 
         super().save(force_insert, force_update)
 

@@ -45,17 +45,12 @@ class TopUpResource(resources.ModelResource):
         attribute='member',
         widget=ForeignKeyWidget(Member, 'membership_number')
     )
-    payment_method = fields.Field(
-        column_name='payment_method',
-        attribute='payment_method',
-        widget=ForeignKeyWidget('configurations.PaymentMethod', 'name')
-    )
 
     class Meta:
         model = TopUp
         import_id_fields = ('top_up_number',)
-        fields = ('top_up_number', 'member_number', 'amount', 'admin_fee', 'net_amount',
-                 'payment_method', 'status', 'mobile_number', 'bank_reference')
+        fields = ('top_up_number', 'member_number', 'amount', 'net_amount',
+                 'status', 'mobile_number', 'bank_reference', 'photo')
         export_order = ('top_up_number', 'member_number', 'amount', 'status', 'request_date')
 
 

@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils import timezone
 
 from configurations.models.base_model import BaseModel
 
@@ -11,11 +12,32 @@ class PaymentGateway(BaseModel):
     base_url = models.URLField(verbose_name="Base URL")
     api_version = models.CharField(max_length=50, blank=True, null=True, verbose_name="API Version")
 
-    # Authentication
+    # Authentication Configuration
+    AUTH_TYPES = [
+        ('basic', 'Basic Authentication'),
+        ('api_key', 'API Key'),
+        ('jwt', 'JWT Token'),
+        ('oauth', 'OAuth 2.0'),
+    ]
+    auth_type = models.CharField(max_length=10, choices=AUTH_TYPES, default='basic',
+                                 verbose_name="Authentication Type")
+
+    # JWT Configuration
+    login_url = models.URLField(blank=True, null=True, verbose_name="JWT Login URL")
+    token_refresh_url = models.URLField(blank=True, null=True, verbose_name="Token Refresh URL")
+    token_field_name = models.CharField(max_length=50, default='access_token',
+                                        verbose_name="Token Field Name")
+    refresh_token_field_name = models.CharField(max_length=50, default='refresh_token',
+                                                verbose_name="Refresh Token Field Name")
+    token_expires_in_field = models.CharField(max_length=50, default='expires_in',
+                                              verbose_name="Token Expires Field Name")
+
+    # Credentials
     username = models.CharField(max_length=255, blank=True, null=True, verbose_name="Username")
     password = models.CharField(max_length=255, blank=True, null=True, verbose_name="Password")
     api_key = models.CharField(max_length=500, blank=True, null=True, verbose_name="API Key")
     secret_key = models.CharField(max_length=500, blank=True, null=True, verbose_name="Secret Key")
+    merchant_id = models.CharField(max_length=255, blank=True, null=True, verbose_name="Merchant ID")
 
     # Configuration
     timeout_seconds = models.PositiveIntegerField(default=30, verbose_name="Timeout (Seconds)")
@@ -38,6 +60,46 @@ class PaymentGateway(BaseModel):
         verbose_name = "Payment Gateway"
         verbose_name_plural = "Payment Gateways"
         ordering = ["name"]
+
+
+class PaymentGatewayToken(BaseModel):
+    gateway = models.OneToOneField(PaymentGateway, on_delete=models.CASCADE, related_name="token_info")
+
+    # Token Information
+    access_token = models.TextField(verbose_name="Access Token")
+    refresh_token = models.TextField(blank=True, null=True, verbose_name="Refresh Token")
+    token_type = models.CharField(max_length=50, default='Bearer', verbose_name="Token Type")
+
+    # Token Expiry
+    expires_in = models.PositiveIntegerField(verbose_name="Expires In (seconds)")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Token Created At")
+    expires_at = models.DateTimeField(verbose_name="Token Expires At")
+
+    # Token Status
+    is_active = models.BooleanField(default=True, verbose_name="Is Active")
+    last_refreshed_at = models.DateTimeField(null=True, blank=True, verbose_name="Last Refreshed At")
+
+    def save(self, *args, **kwargs):
+        # Calculate expiry time
+        if not self.expires_at:
+            self.expires_at = timezone.now() + timezone.timedelta(seconds=self.expires_in)
+        super().save(*args, **kwargs)
+
+    @property
+    def is_expired(self):
+        return timezone.now() >= self.expires_at
+
+    @property
+    def expires_soon(self):
+        # Consider token expiring soon if less than 5 minutes remaining
+        return timezone.now() >= (self.expires_at - timezone.timedelta(minutes=5))
+
+    def __str__(self):
+        return f"Token for {self.gateway.name}"
+
+    class Meta:
+        verbose_name = "Payment Gateway Token"
+        verbose_name_plural = "Payment Gateway Tokens"
 
 
 class PaymentGatewayMapping(BaseModel):

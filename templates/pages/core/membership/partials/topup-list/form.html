@@ -1,0 +1,35 @@
+<form
+        {% if topup %}
+            hx-post="{% url "membership:topups_update" topup.id %}"
+        {% else %}
+            hx-post="{% url 'membership:topups_create' %}"
+            hx-target="#new-topup-modal-container"
+        {% endif %}
+            hx-swap="innerHTML"
+            novalidate=""
+            enctype="multipart/form-data"
+>
+    {% csrf_token %}
+
+    <!-- Modal body with scrollable content -->
+    <div class="p-2 md:p-3 space-y-4 max-h-[60vh] overflow-y-auto">
+        {% include "components/non-field-errors.html" %}
+
+        <div class="grid grid-cols-2 gap-4 md:gap-6">
+            {% include "components/field.html" with field=form.member field_widget_class="col-span-2" %}
+            {% include "components/field.html" with field=form.payment_method field_widget_class="col-span-2" %}
+            {% include "components/field.html" with field=form.amount field_widget_class="col-span-1" %}
+            {% include "components/field.html" with field=form.mobile_number field_widget_class="col-span-1" %}
+            {% include "components/field.html" with field=form.bank_reference field_widget_class="col-span-2" %}
+            {% include "components/field.html" with field=form.photo field_widget_class="col-span-2" %}
+            {% include "components/field.html" with field=form.status field_widget_class="col-span-1" %}
+        </div>
+    </div>
+
+    <div class="flex items-center p-2 md:p-3 border-t border-gray-200 justify-end">
+        <div class="w-40">
+            {% include "components/submit-button.html" %}
+
+        </div>
+    </div>
+</form>

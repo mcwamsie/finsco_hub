@@ -1,6 +1,10 @@
+from django.contrib.auth import get_user_model
 from django.db import models
 
 from configurations.models.base_model import BaseModel
+from services.models.adjudication_override import AdjudicationOverride
+
+User = get_user_model()
 
 
 class AdjudicationRule(BaseModel):
@@ -18,7 +22,7 @@ class AdjudicationRule(BaseModel):
     # Service-based conditions
     services = models.ManyToManyField('configurations.Service', blank=True, verbose_name="Services")
     service_provider_type = models.ManyToManyField('configurations.ServiceProviderType', blank=True,
-                                        verbose_name="Categories")
+                                                   verbose_name="Categories")
 
     # Amount-based conditions
     min_amount = models.DecimalField(max_digits=20, decimal_places=2, default=0,
@@ -137,8 +141,69 @@ class AdjudicationMessageCode(BaseModel):
         verbose_name_plural = "Adjudication Message Codes"
 
 
+# class AdjudicationResult(BaseModel):
+#     # Link to original request/claim
+#     claim = models.ForeignKey('Claim', on_delete=models.CASCADE, null=True, blank=True,
+#                               related_name='adjudication_results')
+#     service_request = models.ForeignKey('ServiceRequest', on_delete=models.CASCADE, null=True, blank=True,
+#                                         related_name='adjudication_results')
+#
+#     # Adjudication details
+#     RESULT_CHOICES = [
+#         ('APPROVED', 'Approved'),
+#         ('PARTIALLY_APPROVED', 'Partially Approved'),
+#         ('DECLINED', 'Declined'),
+#         ('PENDING_REVIEW', 'Pending Review'),
+#         ('PENDING_CLINICAL', 'Pending Clinical Review'),
+#         ('PENDING_DOCS', 'Pending Documentation'),
+#     ]
+#     result = models.CharField(max_length=20, choices=RESULT_CHOICES, verbose_name="Result")
+#
+#     # Original and adjudicated amounts
+#     original_amount = models.DecimalField(max_digits=20, decimal_places=2, default=0,
+#                                           verbose_name="Original Amount")
+#     adjudicated_amount = models.DecimalField(max_digits=20, decimal_places=2, default=0,
+#                                              verbose_name="Adjudicated Amount")
+#     co_payment_amount = models.DecimalField(max_digits=20, decimal_places=2, default=0,
+#                                             verbose_name="Co-payment Amount")
+#
+#     # Rules applied
+#     rules_applied = models.ManyToManyField(AdjudicationRule, through='AdjudicationRuleApplication',
+#                                            verbose_name="Rules Applied")
+#
+#     # Processing details
+#     PROCESSING_TYPE_CHOICES = [
+#         ('AUTOMATIC', 'Automatic'),
+#         ('MANUAL', 'Manual'),
+#         ('CLINICAL', 'Clinical Review'),
+#     ]
+#     processing_type = models.CharField(max_length=10, choices=PROCESSING_TYPE_CHOICES, default='AUTOMATIC',
+#                                        verbose_name="Processing Type")
+#
+#     processed_by = models.ForeignKey('authentication.User', on_delete=models.SET_NULL, null=True, blank=True,
+#                                      related_name='adjudicated_claims', verbose_name="Processed By")
+#     processed_at = models.DateTimeField(null=True, blank=True, verbose_name="Processed At")
+#
+#     # Review details
+#     review_notes = models.TextField(blank=True, null=True, verbose_name="Review Notes")
+#     decline_reason = models.TextField(blank=True, null=True, verbose_name="Decline Reason")
+#
+#     # System flags
+#     requires_manual_review = models.BooleanField(default=False, verbose_name="Requires Manual Review")
+#     requires_clinical_review = models.BooleanField(default=False, verbose_name="Requires Clinical Review")
+#     requires_documentation = models.BooleanField(default=False, verbose_name="Requires Documentation")
+#     is_fraud_suspected = models.BooleanField(default=False, verbose_name="Fraud Suspected")
+#
+#     def __str__(self):
+#         entity = self.claim or self.service_request
+#         return f"Adjudication: {entity} - {self.get_result_display()}"
+#
+#     class Meta:
+#         ordering = ['-created_at']
+#         verbose_name = "Adjudication Result"
+#         verbose_name_plural = "Adjudication Results"
+
 class AdjudicationResult(BaseModel):
-    # Link to original request/claim
     claim = models.ForeignKey('Claim', on_delete=models.CASCADE, null=True, blank=True,
                               related_name='adjudication_results')
     service_request = models.ForeignKey('ServiceRequest', on_delete=models.CASCADE, null=True, blank=True,
@@ -156,8 +221,7 @@ class AdjudicationResult(BaseModel):
     result = models.CharField(max_length=20, choices=RESULT_CHOICES, verbose_name="Result")
 
     # Original and adjudicated amounts
-    original_amount = models.DecimalField(max_digits=20, decimal_places=2, default=0,
-                                          verbose_name="Original Amount")
+    original_amount = models.DecimalField(max_digits=20, decimal_places=2, default=0, verbose_name="Original Amount")
     adjudicated_amount = models.DecimalField(max_digits=20, decimal_places=2, default=0,
                                              verbose_name="Adjudicated Amount")
     co_payment_amount = models.DecimalField(max_digits=20, decimal_places=2, default=0,
@@ -190,6 +254,39 @@ class AdjudicationResult(BaseModel):
     requires_documentation = models.BooleanField(default=False, verbose_name="Requires Documentation")
     is_fraud_suspected = models.BooleanField(default=False, verbose_name="Fraud Suspected")
 
+
+    # Manual adjudication fields
+    is_modified = models.BooleanField(default=False, verbose_name="Is Modified")
+    override_record = models.ForeignKey(AdjudicationOverride, on_delete=models.SET_NULL,
+                                        null=True, blank=True, related_name="results")
+    additional_conditions = models.TextField(blank=True, null=True,
+                                             verbose_name="Additional Conditions")
+
+    # Payment method details
+    partial_payment = models.BooleanField(default=False, verbose_name="Partial Payment")
+    withheld_amount = models.DecimalField(max_digits=20, decimal_places=2, default=0,
+                                          verbose_name="Withheld Amount")
+    withholding_reason = models.TextField(blank=True, null=True, verbose_name="Withholding Reason")
+
+    # Quality assurance
+    requires_qa_review = models.BooleanField(default=False, verbose_name="Requires QA Review")
+    qa_reviewed_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True,
+                                       related_name="qa_reviewed_results", verbose_name="QA Reviewed By")
+    qa_review_notes = models.TextField(blank=True, null=True, verbose_name="QA Review Notes")
+
+    # Tracking
+    is_active = models.BooleanField(default=True, verbose_name="Is Active")
+
+
+    @property
+    def is_overridden(self):
+        return self.override_record is not None
+
+
+    @property
+    def final_payment_amount(self):
+        return self.adjudicated_amount - self.withheld_amount
+
     def __str__(self):
         entity = self.claim or self.service_request
         return f"Adjudication: {entity} - {self.get_result_display()}"
@@ -198,7 +295,6 @@ class AdjudicationResult(BaseModel):
         ordering = ['-created_at']
         verbose_name = "Adjudication Result"
         verbose_name_plural = "Adjudication Results"
-
 
 class AdjudicationRuleApplication(BaseModel):
     adjudication_result = models.ForeignKey(AdjudicationResult, on_delete=models.CASCADE,
@@ -256,4 +352,3 @@ class AdjudicationMessage(BaseModel):
         ordering = ['adjudication_result', 'sequence_number']
         verbose_name = "Adjudication Message"
         verbose_name_plural = "Adjudication Messages"
-

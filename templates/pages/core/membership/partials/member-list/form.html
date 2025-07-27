@@ -1,0 +1,48 @@
+<form
+        {% if member %}
+            hx-post="{% url "membership:members_update" member.membership_number %}"
+        {% else %}
+            hx-post="{% url 'membership:members_create' %}"
+            hx-target="#new-member-modal-container"
+        {% endif %}
+            hx-swap="innerHTML"
+            novalidate=""
+            enctype="multipart/form-data"
+>
+    {% csrf_token %}
+
+    <!-- Modal body with scrollable content -->
+    <div class="p-2 md:p-3 space-y-4 max-h-[60vh] overflow-y-auto">
+        {% include "components/non-field-errors.html" %}
+
+        <div class="grid grid-cols-2 gap-4 md:gap-6">
+            {% include "components/field.html" with field=form.logo field_widget_class="col-span-2" %}
+            {% include "components/field.html" with field=form.name field_widget_class="col-span-2" %}
+            {% include "components/field.html" with field=form.alias field_widget_class="col-span-1" %}
+            {% include "components/field.html" with field=form.type field_widget_class="col-span-1" %}
+            {% include "components/field.html" with field=form.currency field_widget_class="col-span-1" %}
+            {% include "components/field.html" with field=form.default_package field_widget_class="col-span-1" %}
+{#            <div class="col-span-2">#}
+{#                <span class="text-blue-500 text-sm">Contact Information</span>#}
+{#            </div>#}
+             {% include "components/field.html" with field=form.email field_widget_class="col-span-2" %}
+            {% include "components/field.html" with field=form.mobile field_widget_class="col-span-1" %}
+            {% include "components/field.html" with field=form.telephone field_widget_class="col-span-1" %}
+            {% include "components/field.html" with field=form.address_line_1 field_widget_class="col-span-2" %}
+            {% include "components/field.html" with field=form.address_line_2 field_widget_class="col-span-2" %}
+            {% include "components/field.html" with field=form.address_line_3 field_widget_class="col-span-2" %}
+            {% include "components/field.html" with field=form.signing_rule field_widget_class="col-span-1" %}
+            {% include "components/field.html" with field=form.sponsor field_widget_class="col-span-1" %}
+            {% include "components/field.html" with field=form.parent field_widget_class="col-span-2" %}
+            {% include "components/field.html" with field=form.registered_by field_widget_class="col-span-2" %}
+
+        </div>
+    </div>
+
+    <div class="flex items-center p-2 md:p-3 border-t border-gray-200 justify-end">
+        <div class="w-40">
+            {% include "components/submit-button.html" %}
+
+        </div>
+    </div>
+</form>

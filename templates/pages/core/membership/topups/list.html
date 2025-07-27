@@ -1,0 +1,86 @@
+{% extends 'layouts/core/base.html' %}
+{% load static %}
+
+{% block title %}
+    TopUps - Membership
+{% endblock %}
+
+{% block content %}
+    <!-- Header -->
+    {% include "pages/core/membership/partials/topup-list/header.html" %}
+
+    <!-- Toolbar -->
+    {% include "pages/core/membership/partials/topup-list/toolbar.html" %}
+
+    <!-- TopUp List Container -->
+    <div id="topup-list-container"
+         hx-get="{% url 'membership:topups_list' %}"
+         hx-trigger="load" class="flex flex-col flex-1">
+        <!-- TopUp list will be loaded here via HTMX -->
+        <div class="flex items-center justify-center py-12">
+            <div class="text-center">
+                <i class="bi bi-credit-card text-4xl text-gray-400 mb-4"></i>
+                <p class="text-gray-500">Loading topups...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Container -->
+    <div id="modal-container"></div>
+
+    <!-- Edit TopUp Modal Container -->
+    <div id="edit-topup-modal-container"></div>
+{% endblock %}
+
+{% block sidebar %}
+    {% include 'layouts/core/sidebar/membership.html' %}
+{% endblock %}
+
+{% block modals %}
+    {% include "pages/core/membership/partials/topup-list/new-modal.html" with modal_id="new-topup-modal" %}
+    {% include "pages/core/membership/partials/topup-list/edit-modal.html" with modal_id="edit-topup-modal" %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize modals
+    const $newTopUpModalElement = document.getElementById('new-topup-modal');
+    const $editTopUpModalElement = document.getElementById('edit-topup-modal');
+    
+    const modalOptions = {
+        placement: 'bottom-right',
+        backdrop: 'dynamic',
+        backdropClasses: 'bg-gray-900/50 fixed inset-0 z-40',
+        closable: true,
+        onHide: () => {
+            console.log('modal is hidden');
+        },
+        onShow: () => {
+            console.log('modal is shown');
+        },
+        onToggle: () => {
+            console.log('modal has been toggled');
+        },
+    };
+
+    const newModalInstanceOptions = {id: 'new-topup-modal', override: true};
+    const editModalInstanceOptions = {id: 'edit-topup-modal', override: true};
+
+    const new_modal = new Modal($newTopUpModalElement, modalOptions, newModalInstanceOptions);
+    const edit_modal = new Modal($editTopUpModalElement, modalOptions, editModalInstanceOptions);
+
+    // Make modals globally available
+    window.new_modal = new_modal;
+    window.edit_modal = edit_modal;
+
+    // Auto-refresh quick stats every 30 seconds
+    setInterval(function() {
+        htmx.ajax('GET', '{% url "membership:topup_quick_stats" %}', {
+            target: '#topup-quick-stats',
+            swap: 'innerHTML'
+        });
+    }, 30000);
+});
+</script>
+{% endblock %}

@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en" class="w-full h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feedback test: Table 1 - Airtable</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+
+    <!--- Google Nunito Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.css" rel="stylesheet">
+
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+
+
+    <style>
+        .scrollbar-thin::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .scrollbar-thin::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+
+        .scrollbar-thin::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+
+        .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 w-full h-full">
+<!-- Browser Header -->
+
+
+<!-- Main Application -->
+<div class="bg-white w-full h-full flex flex-col pt-14">
+    <!-- Top Navigation -->
+    {% include "layouts/core/header.html" %}
+    <!-- Table Header -->
+
+    <aside id="default-sidebar" class="w-[280px] z-40 fixed top-0 lg:top-14 left-0 bg-gray-50 border-r bottom-0 overflow-y-auto transition-transform -translate-x-full lg:translate-x-0">
+        <!-- Views Section -->
+        <div class="p-4">
+            <div class="flex items-center space-x-2 text-sm text-gray-600 mb-3">
+                <i class="bi bi-grid-3x3-gap"></i>
+                <span>Dashboard</span>
+            </div>
+        </div>
+        {% block sidebar %}{% endblock %}
+
+    </aside>
+
+
+    <!-- Main Content -->
+    <div class="flex lg:pl-[280px] flex-1 flex-col">
+        {% block content %}{% endblock %}
+    </div>
+</div>
+
+<!-- Tooltip showing text at bottom -->
+<div class="fixed bottom-4 right-4 bg-blue-600 text-white px-4 py-2 rounded shadow-lg">
+    <span class="text-sm">id overall product improvement.</span>
+</div>
+<!-- Flowbite JS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.js"></script>
+</body>
+</html>

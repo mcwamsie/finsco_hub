@@ -5,13 +5,12 @@ from configurations.models.base_model import BaseModel
 
 class TopUp(BaseModel):
     member = models.ForeignKey('configurations.Member', on_delete=models.CASCADE, related_name="top_ups")
-
+    account = models.ForeignKey('accounting.MemberAccount', on_delete=models.CASCADE, related_name="top_ups")
     # Payment Details
     top_up_number = models.CharField(max_length=20, unique=True, editable=False, verbose_name="Top-up Number")
     amount = models.DecimalField(max_digits=20, decimal_places=2, verbose_name="Top-up Amount")
     admin_fee = models.DecimalField(max_digits=20, decimal_places=2, default=0, verbose_name="Administration Fee")
-    net_amount = models.DecimalField(max_digits=20, decimal_places=2, default=0, verbose_name="Net Amount")
-
+    photo = models.ImageField(upload_to='topup_photos/', null=True, blank=True, verbose_name="Receipt Photo")
     # Payment Method
     payment_method = models.ForeignKey('configurations.PaymentMethod', on_delete=models.CASCADE, related_name="top_ups", verbose_name="Payment Method")
 
@@ -54,8 +53,7 @@ class TopUp(BaseModel):
             self.top_up_number = f"TU{date_str}{sequence_number:06d}"
 
         # Calculate net amount (amount - admin fee)
-        self.net_amount = self.amount - self.admin_fee
-
+        self.net_amount = self.amount - self._admin_fee
         super().save(*args, **kwargs)
 
     def __str__(self):

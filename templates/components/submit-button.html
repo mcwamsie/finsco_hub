@@ -1,0 +1,10 @@
+<button type="submit"
+        class="w-full bg-blue-900 text-white py-3 px-4 rounded-sm font-medium hover:bg-blue-700 transition-all duration-200 transform disabled:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed submit-btn">
+    <span class="btn-text">
+        {{ button_text | default:"Submit" }}
+    </span>
+    <div class="hidden btn-loading">
+        <i class="animate-spin -ml-1 mr-3 h-5 w-5 text-white inline bi bi-circle"></i>
+        {{ loading_text | default:"Loading..." }}
+    </div>
+</button>

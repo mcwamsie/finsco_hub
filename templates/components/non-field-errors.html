@@ -1,0 +1,12 @@
+{% if form.non_field_errors %}
+    <div class="rounded-sm bg-red-50 p-4">
+        <div class="text-sm text-red-700">
+            {% for error in form.non_field_errors %}
+                <div class="flex items-center gap-2">
+                    <i class="bi bi-exclamation-circle"></i>
+                    {{ error }}
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+{% endif %}

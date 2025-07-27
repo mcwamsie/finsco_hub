@@ -1,0 +1,139 @@
+{% extends 'layouts/core/base.html' %}
+{% load static %}
+
+{% block title %}Services Dashboard{% endblock %}
+
+{% block content %}
+<div class="flex-1">
+    <!-- Header -->
+    {% include "pages/core/services/partials/dashboard/header.html" %}
+
+    {% include "pages/core/services/partials/dashboard/toolbar.html" %}
+
+    <!-- Dashboard Stats -->
+    <div class="bg-white px-4 py-4 border-b">
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+            <div class="bg-blue-50 p-4 rounded-lg">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-blue-600 font-medium">Total Claims</p>
+                        <p class="text-2xl font-bold text-blue-800">{{ stats.claims.total }}</p>
+                    </div>
+                    <i class="bi bi-file-medical text-blue-600 text-2xl"></i>
+                </div>
+            </div>
+            <div class="bg-green-50 p-4 rounded-lg">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-green-600 font-medium">Pending Claims</p>
+                        <p class="text-2xl font-bold text-green-800">{{ stats.claims.pending }}</p>
+                    </div>
+                    <i class="bi bi-clock text-green-600 text-2xl"></i>
+                </div>
+            </div>
+            <div class="bg-yellow-50 p-4 rounded-lg">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-yellow-600 font-medium">Service Requests</p>
+                        <p class="text-2xl font-bold text-yellow-800">{{ stats.requests.total }}</p>
+                    </div>
+                    <i class="bi bi-clipboard-check text-yellow-600 text-2xl"></i>
+                </div>
+            </div>
+            <div class="bg-purple-50 p-4 rounded-lg">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-purple-600 font-medium">Active Services</p>
+                        <p class="text-2xl font-bold text-purple-800">{{ stats.services.active }}</p>
+                    </div>
+                    <i class="bi bi-gear text-purple-600 text-2xl"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="bg-white border-t px-6 py-4">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Recent Claims -->
+            <div>
+                <h3 class="text-lg font-semibold mb-4">Recent Claims</h3>
+                <div class="space-y-3">
+                    {% for claim in recent_claims %}
+                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                                <i class="bi bi-file-medical text-blue-600"></i>
+                            </div>
+                            <div>
+                                <p class="font-medium">{{ claim.transaction_number }}</p>
+                                <p class="text-sm text-gray-500">{{ claim.beneficiary.first_name }} {{ claim.beneficiary.last_name }}</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-sm font-medium">${{ claim.claimed_amount }}</p>
+                            <span class="text-xs text-gray-500">{{ claim.created_at|timesince }} ago</span>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-gray-500 text-center py-4">No recent claims</p>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Pending Service Requests -->
+            <div>
+                <h3 class="text-lg font-semibold mb-4">Pending Service Requests</h3>
+                <div class="space-y-3">
+                    {% for request in pending_requests %}
+                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center">
+                                <i class="bi bi-clipboard-check text-yellow-600"></i>
+                            </div>
+                            <div>
+                                <p class="font-medium">{{ request.request_number }}</p>
+                                <p class="text-sm text-gray-500">{{ request.beneficiary.first_name }} {{ request.beneficiary.last_name }}</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-sm font-medium">${{ request.estimated_amount }}</p>
+                            <span class="text-xs text-gray-500">{{ request.requested_date|timesince }} ago</span>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-gray-500 text-center py-4">No pending requests</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Notification -->
+    <div class="bg-blue-50 border-t border-blue-200 px-6 py-3">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <i class="bi bi-gear text-blue-600"></i>
+                <span class="text-sm text-blue-800">Services management dashboard. Monitor claims, service requests, and system services.</span>
+            </div>
+            <i class="bi bi-x text-blue-600 hover:text-blue-800 cursor-pointer"></i>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Container -->
+<div id="modal-container"></div>
+
+<script>
+// Auto-refresh dashboard stats every 30 seconds
+document.addEventListener('DOMContentLoaded', function() {
+    setInterval(function() {
+        location.reload();
+    }, 30000);
+});
+</script>
+{% endblock %}
+
+{% block sidebar %}
+    {% include 'layouts/core/sidebar/services.html' %}
+{% endblock %}

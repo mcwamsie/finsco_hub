@@ -1,0 +1,74 @@
+{% load static %}
+
+<!-- Toolbar -->
+<div class="bg-white px-4 py-3 border-b flex items-center justify-between">
+    <div class="flex items-center gap-4 divide-x divide-gray-400">
+        <button
+                hx-get="{% url 'membership:beneficiaries_create' %}"
+                hx-target="#new-beneficiary-modal-container"
+                hx-trigger="click"
+                onclick="new_modal.show()"
+                hx-indicator="#new-beneficiary-modal-overlay"
+                class="flex items-center space-x-2 text-sm text-gray-600 hover:text-gray-800">
+            <i class="bi bi-plus h-4 w-4"></i>
+            <span>New Beneficiary</span>
+            {#                <i class="bi bi-chevron-down"></i>#}
+        </button>
+        <button class="flex items-center space-x-2 pl-4 text-sm text-gray-600 hover:text-gray-800">
+            <i class="bi bi-file-earmark-person"></i>
+            <span>Pending Applications</span>
+        </button>
+    </div>
+    <button class="flex items-center space-x-2 text-sm text-gray-600 hover:text-gray-800">
+        <i class="bi bi-share"></i>
+        <span>Share and sync</span>
+    </button>
+</div>
+
+<!-- Quick Stats -->
+<div class="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4 px-4">
+    <div class="bg-blue-50 rounded-lg p-3">
+        <div class="flex items-center">
+            <div class="flex-shrink-0">
+                <i class="bi bi-people text-blue-600 text-lg"></i>
+            </div>
+            <div class="ml-3">
+                <p class="text-sm font-medium text-blue-900">Total</p>
+                <p class="text-lg font-semibold text-blue-600">{{ total_beneficiaries|default:0 }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="bg-green-50 rounded-lg p-3">
+        <div class="flex items-center">
+            <div class="flex-shrink-0">
+                <i class="bi bi-check-circle text-green-600 text-lg"></i>
+            </div>
+            <div class="ml-3">
+                <p class="text-sm font-medium text-green-900">Active</p>
+                <p class="text-lg font-semibold text-green-600">{{ active_beneficiaries|default:0 }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="bg-purple-50 rounded-lg p-3">
+        <div class="flex items-center">
+            <div class="flex-shrink-0">
+                <i class="bi bi-person-badge text-purple-600 text-lg"></i>
+            </div>
+            <div class="ml-3">
+                <p class="text-sm font-medium text-purple-900">Principals</p>
+                <p class="text-lg font-semibold text-purple-600">{{ principal_count|default:0 }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="bg-orange-50 rounded-lg p-3">
+        <div class="flex items-center">
+            <div class="flex-shrink-0">
+                <i class="bi bi-person-hearts text-orange-600 text-lg"></i>
+            </div>
+            <div class="ml-3">
+                <p class="text-sm font-medium text-orange-900">Dependents</p>
+                <p class="text-lg font-semibold text-orange-600">{{ dependent_count|default:0 }}</p>
+            </div>
+        </div>
+    </div>
+</div>

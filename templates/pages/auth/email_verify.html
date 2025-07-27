@@ -1,0 +1,143 @@
+{% extends 'layouts/auth-base.html' %}
+{% load static %}
+
+{% block title %}Email Verification - Fisco Hub{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-md w-full space-y-8">
+        <!-- Header -->
+        <div class="text-center">
+            <div class="mx-auto h-16 w-16 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center mb-6">
+                <svg class="h-8 w-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                </svg>
+            </div>
+            <h2 class="text-3xl font-bold text-gray-900 mb-2">Check Your Email</h2>
+            <p class="text-gray-600 mb-8">We've sent a verification code to your email address</p>
+        </div>
+
+        <!-- Verification Form -->
+        <div class="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
+            <form id="verification-form" 
+                  hx-post="{% url 'authentication:email_verify' %}" 
+                  hx-target="#verification-form"
+                  hx-swap="outerHTML"
+                  hx-indicator="#loading-indicator">
+                
+                {% csrf_token %}
+                
+                <!-- Email Display -->
+                <div class="mb-6">
+                    <div class="flex items-center justify-center p-4 bg-gray-50 rounded-lg">
+                        <svg class="h-5 w-5 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"></path>
+                        </svg>
+                        <span class="text-gray-700 font-medium">{{ request.session.verification_email|default:"your-email@example.com" }}</span>
+                    </div>
+                </div>
+
+                <!-- Verification Code Field -->
+                <div class="mb-6">
+                    {% include 'components/field.html' with field=form.verification_code %}
+                </div>
+
+                <!-- Submit Button -->
+                <button type="submit" 
+                        class="w-full bg-gradient-to-r from-indigo-500 to-purple-600 text-white py-3 px-4 rounded-lg font-semibold hover:from-indigo-600 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-all duration-200 transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                        hx-disable-element="this"
+                        hx-disable-element="#verification-form input">
+                    <span class="htmx-indicator hidden">
+                        <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Verifying...
+                    </span>
+                    <span class="htmx-indicator-default">
+                        Verify Code
+                    </span>
+                </button>
+
+                <!-- Loading Indicator -->
+                <div id="loading-indicator" class="htmx-indicator">
+                    <div class="flex items-center justify-center mt-4">
+                        <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-500"></div>
+                        <span class="ml-2 text-gray-600">Verifying your code...</span>
+                    </div>
+                </div>
+            </form>
+
+            <!-- Resend Code -->
+            <div class="mt-6 text-center">
+                <p class="text-gray-600 mb-4">Didn't receive the code?</p>
+                <button type="button" 
+                        id="resend-btn"
+                        hx-post="{% url 'authentication:email_login' %}"
+                        hx-vals='{"resend": "true"}'
+                        hx-target="#resend-message"
+                        hx-swap="innerHTML"
+                        class="text-indigo-600 hover:text-indigo-500 font-medium transition-colors duration-200">
+                    Resend Code
+                </button>
+                <div id="resend-message" class="mt-2"></div>
+            </div>
+
+            <!-- Back to Login -->
+            <div class="mt-6 text-center">
+                <a href="{% url 'authentication:email_login' %}" 
+                   class="text-gray-500 hover:text-gray-700 text-sm transition-colors duration-200">
+                    ← Back to Login
+                </a>
+            </div>
+        </div>
+
+        <!-- Security Notice -->
+        <div class="bg-amber-50 border border-amber-200 rounded-lg p-4">
+            <div class="flex items-start">
+                <svg class="h-5 w-5 text-amber-400 mt-0.5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                </svg>
+                <div>
+                    <h3 class="text-sm font-medium text-amber-800 mb-1">Security Notice</h3>
+                    <p class="text-sm text-amber-700">
+                        Your verification code will expire in 10 minutes. Never share this code with anyone.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.body.addEventListener('htmx:beforeRequest', function(evt) {
+    // Disable form elements during request
+    const form = evt.target.closest('form');
+    if (form) {
+        const inputs = form.querySelectorAll('input, button');
+        inputs.forEach(input => {
+            input.disabled = true;
+        });
+    }
+});
+
+document.body.addEventListener('htmx:afterRequest', function(evt) {
+    // Re-enable form elements after request
+    const form = evt.target.closest('form');
+    if (form && evt.detail.xhr.status !== 200) {
+        const inputs = form.querySelectorAll('input, button');
+        inputs.forEach(input => {
+            input.disabled = false;
+        });
+    }
+});
+
+// Auto-focus on verification code input
+document.addEventListener('DOMContentLoaded', function() {
+    const codeInput = document.querySelector('input[name="verification_code"]');
+    if (codeInput) {
+        codeInput.focus();
+    }
+});
+</script>
+{% endblock %}

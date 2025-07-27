@@ -1,0 +1,216 @@
+{% load widget_tweaks %}
+
+<div class="space-y-1 {% if field.field.required %}required{% endif %} {{ field_widget_class }}">
+    <!-- Field Label -->
+    {% if field.label and not hide_label %}
+        <label for="{{ field.id_for_label }}" class="flex items-center gap-2 text-sm  text-gray-700 {% if field.field.required %}font-bold{% else %}font-medium{% endif %}">
+{#            {% if field.name == 'user' %}#}
+{#                <div class="w-4 h-4 bg-orange-500 rounded flex items-center justify-center text-white text-xs">#}
+{#                    <i class="bi bi-person-fill"></i>#}
+{#                </div>#}
+{#            {% elif field.name == 'feedback_type' %}#}
+{#                <div class="w-4 h-4 bg-teal-500 rounded flex items-center justify-center text-white text-xs">#}
+{#                    <i class="bi bi-circle-fill"></i>#}
+{#                </div>#}
+{#            {% elif field.name == 'description' %}#}
+{#                <div class="w-4 h-4 bg-indigo-500 rounded flex items-center justify-center text-white text-xs">#}
+{#                    <i class="bi bi-pencil-fill"></i>#}
+{#                </div>#}
+{#            {% elif field.name == 'channel' %}#}
+{#                <div class="w-4 h-4 bg-teal-500 rounded flex items-center justify-center text-white text-xs">#}
+{#                    <i class="bi bi-circle-fill"></i>#}
+{#                </div>#}
+{#            {% elif field.name == 'priority' %}#}
+{#                <div class="w-4 h-4 bg-red-500 rounded flex items-center justify-center text-white text-xs">#}
+{#                    <i class="bi bi-exclamation-triangle"></i>#}
+{#                </div>#}
+{#            {% elif field.name == 'status' %}#}
+{#                <div class="w-4 h-4 bg-green-500 rounded flex items-center justify-center text-white text-xs">#}
+{#                    <i class="bi bi-check-circle"></i>#}
+{#                </div>#}
+{#            {% elif field.name == 'tags' %}#}
+{#                <div class="w-4 h-4 bg-purple-500 rounded flex items-center justify-center text-white text-xs">#}
+{#                    <i class="bi bi-tags"></i>#}
+{#                </div>#}
+{#            {% elif field.field.widget.input_type == 'file' %}#}
+{#                <div class="w-4 h-4 bg-gray-500 rounded flex items-center justify-center text-white text-xs">#}
+{#                    <i class="bi bi-paperclip"></i>#}
+{#                </div>#}
+{#            {% else %}#}
+{#                <div class="w-4 h-4 bg-blue-500 rounded flex items-center justify-center text-white text-xs">#}
+{#                    <i class="bi bi-input-cursor"></i>#}
+{#                </div>#}
+{#            {% endif %}#}
+            {{ field.label }}
+            {% if field.field.required %}
+                <span class="text-red-500">*</span>
+            {% endif %}
+        </label>
+    {% endif %}
+
+    <!-- Field Widget -->
+    <div class="relative">
+        {% if field.field.widget.input_type == 'select' %}
+            {{ field|add_class:"w-full px-3 py-2 border border-gray-300 rounded-sm focus:outline-none focus:ring-2 focus:ring-airtable-blue focus:border-transparent appearance-none bg-white form-field disabled:opacity-50 disabled:cursor-not-allowed"|add_error_class:"focus-red-700 bg-red-50 border-red-500" }}
+            <i class="bi bi-chevron-down absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none select-arrow"></i>
+
+        {% elif field.field.widget.input_type == 'textarea' %}
+            {{ field|add_class:"w-full px-3 py-2 border border-gray-300 rounded-sm focus:outline-none focus:ring-2 focus:ring-airtable-blue focus:border-transparent resize-none form-field disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-50"|attr:"rows:4"|add_error_class:"focus-red-700 bg-red-50 border-red-500" }}
+            {% if field.name == 'description' %}
+                <div class="text-xs text-gray-500 mt-1">
+                    <span id="{{ field.id_for_label }}-counter">0</span> characters
+                </div>
+            {% endif %}
+
+        {% elif field.field.widget.input_type == 'file' %}
+            {{ field|add_class:"hidden form-field" }}
+            <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors cursor-pointer file-upload-area" onclick="handleFileUpload('{{ field.id_for_label }}')">
+                <div class="upload-content">
+                    <i class="bi bi-cloud-upload text-2xl text-gray-400 mb-2"></i>
+                    <div class="text-sm text-gray-600">Drop files here or click to upload</div>
+                    <div class="text-xs text-gray-500 mt-1">PNG, JPG, PDF up to 10MB</div>
+                </div>
+                <div class="upload-loading hidden">
+                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-airtable-blue mx-auto mb-2"></div>
+                    <div class="text-sm text-gray-600">Parsing...</div>
+                </div>
+                <div class="upload-disabled hidden">
+                    <i class="bi bi-upload text-2xl text-gray-300 mb-2"></i>
+                    <div class="text-sm text-gray-400">Upload disabled during form submission</div>
+                </div>
+            </div>
+
+
+        {% elif field.field.widget.input_type == 'checkbox' %}
+            <div class="flex items-center">
+                {{ field|add_class:"w-4 h-4 text-airtable-blue bg-gray-100 border-gray-300 rounded focus:ring-airtable-blue focus:ring-1 form-field disabled:opacity-50 disabled:cursor-not-allowed" }}
+                {% if field.label %}
+                    <label for="{{ field.id_for_label }}" class="ml-2 text-sm text-gray-700">{{ field.label }}</label>
+                {% endif %}
+            </div>
+
+        {% elif field.field.widget.input_type == 'email' %}
+            {{ field|add_class:"w-full px-3 py-2 border border-gray-300 rounded-sm focus:outline-none focus:ring-1 focus:ring-airtable-blue focus:border-transparent form-field disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-50"|attr:"placeholder:Enter email address"|add_error_class:"focus-red-700 bg-red-50 border-red-500" }}
+            <i class="bi bi-envelope absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+
+        {% elif field.field.widget.input_type == 'url' %}
+            {{ field|add_class:"w-full px-3 py-2 border border-gray-300 rounded-sm focus:outline-none focus:ring-1 focus:ring-airtable-blue focus:border-transparent form-field disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-50"|attr:"placeholder:https://example.com"|add_error_class:"focus-red-700 bg-red-50 border-red-500" }}
+            <i class="bi bi-link-45deg absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+
+        {% elif field.field.widget.input_type == 'date' %}
+            {{ field|add_class:"w-full px-3 py-2 border border-gray-300 rounded-sm focus:outline-none focus:ring-1 focus:ring-airtable-blue focus:border-transparent form-field disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-50"|add_error_class:"focus-red-700 bg-red-50 border-red-500" }}
+            <i class="bi bi-calendar absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+
+        {% elif field.field.widget.input_type == 'number' %}
+            {{ field|add_class:"w-full px-3 py-2 border border-gray-300 rounded-sm focus:outline-none focus:ring-1 focus:ring-airtable-blue focus:border-transparent form-field disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-50"|add_error_class:"focus-red-700 bg-red-50 border-red-500" }}
+            <i class="bi bi-hash absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+
+        {% else %}
+            {{ field|add_class:"w-full px-3 py-2 border border-gray-300 rounded-sm focus:outline-none focus:ring-1 focus:ring-airtable-blue focus:border-transparent form-field disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-50"|add_error_class:"focus-red-700 bg-red-50 border-red-500" }}
+        {% endif %}
+    </div>
+
+    <!-- Field Errors -->
+    {% if field.errors %}
+        <div class="text-red-600 text-sm mt-1">
+            {% for error in field.errors %}
+                <div class="flex items-center gap-1">
+                    <i class="bi bi-exclamation-circle"></i>
+                    {{ error }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- Field Help Text -->
+    {% if field.help_text %}
+        <div class="text-gray-500 text-xs mt-1">
+            {{ field.help_text }}
+        </div>
+    {% endif %}
+
+    <!-- Field Value Display (for read-only mode) -->
+    {% if field.value and not field.field.disabled %}
+        {% if field.name == 'feedback_type' %}
+            <div class="mt-2">
+                {% if field.value == 'bug' %}
+                    <span class="inline-flex items-center gap-1 px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs">
+                        <i class="bi bi-bug"></i> Bug Report
+                    </span>
+                {% elif field.value == 'feature' %}
+                    <span class="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
+                        <i class="bi bi-lightbulb"></i> Feature Request
+                    </span>
+                {% elif field.value == 'improvement' %}
+                    <span class="inline-flex items-center gap-1 px-2 py-1 bg-orange-100 text-orange-800 rounded-full text-xs">
+                        <i class="bi bi-tools"></i> Improvement
+                    </span>
+                {% elif field.value == 'praise' %}
+                    <span class="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">
+                        <i class="bi bi-heart"></i> Praise
+                    </span>
+                {% endif %}
+            </div>
+        {% elif field.name == 'priority' %}
+            <div class="mt-2">
+                {% if field.value == 'low' %}
+                    <span class="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">
+                        <i class="bi bi-arrow-down-circle"></i> Low Priority
+                    </span>
+                {% elif field.value == 'medium' %}
+                    <span class="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
+                        <i class="bi bi-dash-circle"></i> Medium Priority
+                    </span>
+                {% elif field.value == 'high' %}
+                    <span class="inline-flex items-center gap-1 px-2 py-1 bg-orange-100 text-orange-800 rounded-full text-xs">
+                        <i class="bi bi-exclamation-triangle"></i> High Priority
+                    </span>
+                {% elif field.value == 'urgent' %}
+                    <span class="inline-flex items-center gap-1 px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs">
+                        <i class="bi bi-exclamation-triangle"></i> Urgent
+                    </span>
+                {% endif %}
+            </div>
+        {% elif field.name == 'status' %}
+            <div class="mt-2">
+                {% if field.value == 'new' %}
+                    <span class="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">
+                        <i class="bi bi-circle-fill"></i> New
+                    </span>
+                {% elif field.value == 'in_progress' %}
+                    <span class="inline-flex items-center gap-1 px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs">
+                        <i class="bi bi-play-circle-fill"></i> In Progress
+                    </span>
+                {% elif field.value == 'resolved' %}
+                    <span class="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
+                        <i class="bi bi-check-circle-fill"></i> Resolved
+                    </span>
+                {% elif field.value == 'closed' %}
+                    <span class="inline-flex items-center gap-1 px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-xs">
+                        <i class="bi bi-x-circle-fill"></i> Closed
+                    </span>
+                {% endif %}
+            </div>
+        {% elif field.name == 'channel' %}
+            <div class="mt-2">
+                {% if field.value == 'email' %}
+                    <span class="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
+                        <i class="bi bi-envelope"></i> Email
+                    </span>
+                {% elif field.value == 'chat' %}
+                    <span class="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">
+                        <i class="bi bi-chat-dots"></i> Live Chat
+                    </span>
+                {% elif field.value == 'phone' %}
+                    <span class="inline-flex items-center gap-1 px-2 py-1 bg-purple-100 text-purple-800 rounded-full text-xs">
+                        <i class="bi bi-telephone"></i> Phone
+                    </span>
+                {% elif field.value == 'ticket' %}
+                    <span class="inline-flex items-center gap-1 px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs">
+                        <i class="bi bi-ticket"></i> Support Ticket
+                    </span>
+                {% endif %}
+            </div>
+        {% endif %}
+    {% endif %}
+</div>

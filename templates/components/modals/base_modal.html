@@ -1,0 +1,476 @@
+{% load static %}
+
+<!-- Base Modal Structure -->
+<div id="{{ modal_id|default:'base-modal' }}" 
+     class="modal fixed inset-0 z-50 hidden overflow-y-auto" 
+     aria-labelledby="{{ modal_id|default:'base-modal' }}-title" 
+     role="dialog" 
+     aria-modal="true">
+    
+    <!-- Background overlay -->
+    <div class="modal-overlay fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" 
+         onclick="closeModal('{{ modal_id|default:'base-modal' }}')"></div>
+    
+    <!-- Modal container -->
+    <div class="modal-container flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+        <!-- Modal panel -->
+        <div class="modal-panel relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all 
+                    {{ modal_size|default:'sm:max-w-lg' }} sm:w-full">
+            
+            <!-- Modal Header -->
+            {% block modal_header %}
+            <div class="modal-header bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        {% if modal_icon %}
+                        <div class="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full 
+                                    {{ modal_icon_bg|default:'bg-blue-100' }} sm:mx-0 sm:h-10 sm:w-10">
+                            <i class="bi bi-{{ modal_icon }} {{ modal_icon_color|default:'text-blue-600' }}"></i>
+                        </div>
+                        {% endif %}
+                        <div class="{% if modal_icon %}ml-4{% endif %}">
+                            <h3 class="modal-title text-base font-semibold leading-6 text-gray-900" 
+                                id="{{ modal_id|default:'base-modal' }}-title">
+                                {{ modal_title|default:'Modal Title' }}
+                            </h3>
+                            {% if modal_subtitle %}
+                            <p class="text-sm text-gray-500 mt-1">{{ modal_subtitle }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <button type="button" 
+                            class="modal-close rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-airtable-blue focus:ring-offset-2" 
+                            onclick="closeModal('{{ modal_id|default:'base-modal' }}')">
+                        <span class="sr-only">Close</span>
+                        <i class="bi bi-x-lg h-6 w-6"></i>
+                    </button>
+                </div>
+            </div>
+            {% endblock %}
+            
+            <!-- Modal Body -->
+            {% block modal_body %}
+            <div class="modal-body bg-white px-4 py-5 sm:p-6">
+                <div class="text-sm text-gray-500">
+                    {{ modal_content|default:'Modal content goes here.' }}
+                </div>
+            </div>
+            {% endblock %}
+            
+            <!-- Modal Footer -->
+            {% block modal_footer %}
+            <div class="modal-footer bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
+                {% block modal_actions %}
+                <button type="button" 
+                        class="btn-primary inline-flex w-full justify-center px-3 py-2 text-sm font-semibold shadow-sm sm:ml-3 sm:w-auto" 
+                        onclick="{{ modal_primary_action|default:'closeModal' }}('{{ modal_id|default:'base-modal' }}')"
+                        data-loading 
+                        data-loading-text="{{ modal_primary_loading_text|default:'Processing...' }}">
+                    {{ modal_primary_text|default:'Confirm' }}
+                </button>
+                <button type="button" 
+                        class="btn-secondary mt-3 inline-flex w-full justify-center px-3 py-2 text-sm font-semibold sm:mt-0 sm:w-auto" 
+                        onclick="closeModal('{{ modal_id|default:'base-modal' }}')">
+                    {{ modal_secondary_text|default:'Cancel' }}
+                </button>
+                {% endblock %}
+            </div>
+            {% endblock %}
+        </div>
+    </div>
+    
+    <!-- Loading Overlay -->
+    <div class="modal-loading hidden absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center z-10">
+        <div class="text-center">
+            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-airtable-blue mx-auto mb-2"></div>
+            <div class="text-sm text-gray-600">{{ modal_loading_text|default:'Loading...' }}</div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal JavaScript -->
+<script>
+// Global modal management
+window.modalStack = window.modalStack || [];
+
+function openModal(modalId, options = {}) {
+    const modal = document.getElementById(modalId);
+    if (!modal) {
+        console.error(`Modal with ID '${modalId}' not found`);
+        return;
+    }
+    
+    // Add to modal stack
+    window.modalStack.push(modalId);
+    
+    // Apply options
+    if (options.title) {
+        const titleEl = modal.querySelector('.modal-title');
+        if (titleEl) titleEl.textContent = options.title;
+    }
+    
+    if (options.content) {
+        const bodyEl = modal.querySelector('.modal-body');
+        if (bodyEl) bodyEl.innerHTML = options.content;
+    }
+    
+    if (options.size) {
+        const panelEl = modal.querySelector('.modal-panel');
+        if (panelEl) {
+            // Remove existing size classes
+            panelEl.classList.remove('sm:max-w-lg', 'sm:max-w-xl', 'sm:max-w-2xl', 'sm:max-w-4xl', 'sm:max-w-6xl');
+            panelEl.classList.add(options.size);
+        }
+    }
+    
+    // Show modal
+    modal.classList.remove('hidden');
+    document.body.classList.add('overflow-hidden');
+    
+    // Focus management
+    setTimeout(() => {
+        const firstFocusable = modal.querySelector('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+        if (firstFocusable) {
+            firstFocusable.focus();
+        }
+    }, 100);
+    
+    // Trigger custom event
+    modal.dispatchEvent(new CustomEvent('modal:opened', { detail: options }));
+    
+    // Setup escape key handler
+    setupModalEscapeHandler(modalId);
+}
+
+function closeModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (!modal) return;
+    
+    // Remove from modal stack
+    const index = window.modalStack.indexOf(modalId);
+    if (index > -1) {
+        window.modalStack.splice(index, 1);
+    }
+    
+    // Hide modal
+    modal.classList.add('hidden');
+    
+    // Remove body overflow hidden if no modals are open
+    if (window.modalStack.length === 0) {
+        document.body.classList.remove('overflow-hidden');
+    }
+    
+    // Clear any loading states
+    hideModalLoading(modalId);
+    
+    // Reset form if exists
+    const form = modal.querySelector('form');
+    if (form) {
+        form.reset();
+        clearFormErrors(form);
+    }
+    
+    // Trigger custom event
+    modal.dispatchEvent(new CustomEvent('modal:closed'));
+}
+
+function closeAllModals() {
+    window.modalStack.forEach(modalId => {
+        closeModal(modalId);
+    });
+    window.modalStack = [];
+}
+
+function showModalLoading(modalId, message = 'Loading...') {
+    const modal = document.getElementById(modalId);
+    if (!modal) return;
+    
+    const loadingEl = modal.querySelector('.modal-loading');
+    if (loadingEl) {
+        const messageEl = loadingEl.querySelector('.text-sm');
+        if (messageEl) messageEl.textContent = message;
+        loadingEl.classList.remove('hidden');
+    }
+    
+    // Disable all interactive elements
+    const interactiveElements = modal.querySelectorAll('button, input, select, textarea, a');
+    interactiveElements.forEach(el => {
+        el.disabled = true;
+        el.classList.add('pointer-events-none', 'opacity-50');
+    });
+}
+
+function hideModalLoading(modalId) {
+    const modal = document.getElementById(modalId);
+    if (!modal) return;
+    
+    const loadingEl = modal.querySelector('.modal-loading');
+    if (loadingEl) {
+        loadingEl.classList.add('hidden');
+    }
+    
+    // Re-enable all interactive elements
+    const interactiveElements = modal.querySelectorAll('button, input, select, textarea, a');
+    interactiveElements.forEach(el => {
+        el.disabled = false;
+        el.classList.remove('pointer-events-none', 'opacity-50');
+    });
+}
+
+function setupModalEscapeHandler(modalId) {
+    function handleEscape(e) {
+        if (e.key === 'Escape' && window.modalStack[window.modalStack.length - 1] === modalId) {
+            closeModal(modalId);
+            document.removeEventListener('keydown', handleEscape);
+        }
+    }
+    
+    document.addEventListener('keydown', handleEscape);
+}
+
+// Form handling within modals
+function submitModalForm(modalId, formId, options = {}) {
+    const modal = document.getElementById(modalId);
+    const form = document.getElementById(formId) || modal.querySelector('form');
+    
+    if (!form) {
+        console.error('Form not found in modal');
+        return;
+    }
+    
+    // Show loading
+    showModalLoading(modalId, options.loadingText || 'Submitting...');
+    
+    // Clear previous errors
+    clearFormErrors(form);
+    
+    // Prepare form data
+    const formData = new FormData(form);
+    
+    // Add CSRF token if available
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
+    if (csrfToken) {
+        formData.append('csrfmiddlewaretoken', csrfToken.value);
+    }
+    
+    // Submit form
+    fetch(form.action || window.location.href, {
+        method: form.method || 'POST',
+        body: formData,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+        }
+    })
+    .then(response => {
+        if (response.ok) {
+            return response.json();
+        }
+        throw new Error('Network response was not ok');
+    })
+    .then(data => {
+        hideModalLoading(modalId);
+        
+        if (data.success) {
+            closeModal(modalId);
+            showToast(data.message || 'Operation completed successfully', 'success');
+            
+            // Reload page or update content if specified
+            if (options.reload) {
+                window.location.reload();
+            } else if (options.redirect) {
+                window.location.href = options.redirect;
+            } else if (options.callback) {
+                options.callback(data);
+            }
+        } else {
+            // Handle form errors
+            if (data.errors) {
+                displayFormErrors(form, data.errors);
+            }
+            showToast(data.message || 'Please correct the errors below', 'error');
+        }
+    })
+    .catch(error => {
+        hideModalLoading(modalId);
+        console.error('Error:', error);
+        showToast('An error occurred. Please try again.', 'error');
+    });
+}
+
+function clearFormErrors(form) {
+    // Remove error classes and messages
+    const errorElements = form.querySelectorAll('.error-message, .field-error');
+    errorElements.forEach(el => el.remove());
+    
+    const errorFields = form.querySelectorAll('.border-red-500, .ring-red-500');
+    errorFields.forEach(field => {
+        field.classList.remove('border-red-500', 'ring-red-500');
+        field.classList.add('border-gray-300');
+    });
+}
+
+function displayFormErrors(form, errors) {
+    Object.entries(errors).forEach(([fieldName, fieldErrors]) => {
+        const field = form.querySelector(`[name="${fieldName}"]`);
+        if (field) {
+            // Add error styling
+            field.classList.remove('border-gray-300');
+            field.classList.add('border-red-500', 'ring-red-500');
+            
+            // Add error message
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error-message text-sm text-red-600 mt-1';
+            errorDiv.textContent = Array.isArray(fieldErrors) ? fieldErrors[0] : fieldErrors;
+            
+            field.parentNode.appendChild(errorDiv);
+        }
+    });
+}
+
+// Confirmation modal helper
+function showConfirmModal(options = {}) {
+    const modalId = 'confirm-modal';
+    let modal = document.getElementById(modalId);
+    
+    if (!modal) {
+        // Create confirmation modal if it doesn't exist
+        modal = createConfirmModal(modalId);
+        document.body.appendChild(modal);
+    }
+    
+    // Update modal content
+    const titleEl = modal.querySelector('.modal-title');
+    const bodyEl = modal.querySelector('.modal-body');
+    const confirmBtn = modal.querySelector('.btn-primary');
+    const cancelBtn = modal.querySelector('.btn-secondary');
+    
+    if (titleEl) titleEl.textContent = options.title || 'Confirm Action';
+    if (bodyEl) bodyEl.innerHTML = options.message || 'Are you sure you want to proceed?';
+    if (confirmBtn) {
+        confirmBtn.textContent = options.confirmText || 'Confirm';
+        confirmBtn.onclick = () => {
+            if (options.onConfirm) options.onConfirm();
+            closeModal(modalId);
+        };
+    }
+    if (cancelBtn) {
+        cancelBtn.textContent = options.cancelText || 'Cancel';
+        cancelBtn.onclick = () => {
+            if (options.onCancel) options.onCancel();
+            closeModal(modalId);
+        };
+    }
+    
+    openModal(modalId);
+}
+
+function createConfirmModal(modalId) {
+    const modalHTML = `
+        <div id="${modalId}" class="modal fixed inset-0 z-50 hidden overflow-y-auto" role="dialog" aria-modal="true">
+            <div class="modal-overlay fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onclick="closeModal('${modalId}')"></div>
+            <div class="modal-container flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+                <div class="modal-panel relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:max-w-lg sm:w-full">
+                    <div class="modal-header bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
+                        <div class="flex items-center justify-between">
+                            <h3 class="modal-title text-base font-semibold leading-6 text-gray-900">Confirm Action</h3>
+                            <button type="button" class="modal-close rounded-md bg-white text-gray-400 hover:text-gray-500" onclick="closeModal('${modalId}')">
+                                <i class="bi bi-x-lg h-6 w-6"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="modal-body bg-white px-4 py-5 sm:p-6">
+                        <div class="text-sm text-gray-500">Are you sure you want to proceed?</div>
+                    </div>
+                    <div class="modal-footer bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
+                        <button type="button" class="btn-primary inline-flex w-full justify-center px-3 py-2 text-sm font-semibold shadow-sm sm:ml-3 sm:w-auto">
+                            Confirm
+                        </button>
+                        <button type="button" class="btn-secondary mt-3 inline-flex w-full justify-center px-3 py-2 text-sm font-semibold sm:mt-0 sm:w-auto">
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    const div = document.createElement('div');
+    div.innerHTML = modalHTML;
+    return div.firstElementChild;
+}
+
+// Initialize modal system
+document.addEventListener('DOMContentLoaded', function() {
+    // Close modals when clicking outside
+    document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('modal-overlay')) {
+            const modal = e.target.closest('.modal');
+            if (modal) {
+                closeModal(modal.id);
+            }
+        }
+    });
+    
+    // Handle modal form submissions
+    document.addEventListener('submit', function(e) {
+        const form = e.target;
+        const modal = form.closest('.modal');
+        
+        if (modal && form.hasAttribute('data-modal-form')) {
+            e.preventDefault();
+            submitModalForm(modal.id, form.id);
+        }
+    });
+});
+</script>
+
+<!-- Modal Styles -->
+<style>
+.modal {
+    backdrop-filter: blur(4px);
+}
+
+.modal-panel {
+    animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.modal.hidden .modal-panel {
+    animation: modalSlideOut 0.2s ease-in;
+}
+
+@keyframes modalSlideOut {
+    from {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(-10px) scale(0.95);
+    }
+}
+
+/* Focus styles for modal elements */
+.modal button:focus,
+.modal input:focus,
+.modal select:focus,
+.modal textarea:focus {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
+}
+
+/* Loading state styles */
+.modal-loading {
+    backdrop-filter: blur(2px);
+}
+</style>

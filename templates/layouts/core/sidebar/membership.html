@@ -1,0 +1,83 @@
+{% load active_link_tags %}
+
+<div class="mb-4">
+    <a href="{% url 'membership:dashboard' %}" class="py-3 px-4 rounded-sm flex items-center space-x-2 text-sm {% active_link 'membership:dashboard' 'bg-gray-600/80 text-white' 'text-gray-600' strict=True  %}">
+        <i class="bi bi-grid-3x3-gap"></i>
+        <span>Dashboard</span>
+    </a>
+</div>
+
+<!-- Membership Section -->
+<div class="pb-4">
+    <div class="flex items-center justify-between mb-3">
+        <span class="text-sm uppercase font-medium text-gray-700">Membership...</span>
+    </div>
+    <div class="space-y-2">
+        <a href="{% url 'membership:members' %}"  class="flex items-center justify-between py-3 px-4 rounded-sm cursor-pointer {% active_link 'membership:members' 'bg-blue-600/80 hover:bg-blue-600 text-white' 'text-gray-600 hover:bg-gray-100' %}">
+            <span class="flex items-center space-x-2 ">
+                <i class="bi bi-people  {% active_link 'membership:members' 'text-white' 'text-blue-600' %}"></i>
+                <span class="text-sm">Members</span>
+            </span>
+{#            <i class="bi bi-plus text-gray-400"></i>#}
+        </a>
+        <a href="{% url 'membership:beneficiaries' %}"  class="flex items-center justify-between py-3 px-4 rounded-sm cursor-pointer {% active_link 'membership:beneficiaries' 'bg-green-600/80 hover:bg-green-600 text-white' 'text-gray-600 hover:bg-gray-100' %}">
+            <span class="flex items-center space-x-2 ">
+                <i class="bi bi-person-heart  {% active_link 'membership:beneficiaries' 'text-white' 'text-green-600' %}"></i>
+                <span class="text-sm">Beneficiaries</span>
+            </span>
+{#            <i class="bi bi-plus text-gray-400"></i>#}
+        </a>
+        <a href="{% url 'membership:topups' %}"  class="flex items-center justify-between py-3 px-4 rounded-sm cursor-pointer {% active_link 'membership:topups' 'bg-purple-600/80 hover:bg-purple-600 text-white' 'text-gray-600 hover:bg-gray-100' %}">
+            <span class="flex items-center space-x-2 ">
+                <i class="bi bi-credit-card  {% active_link 'membership:topups' 'text-white' 'text-purple-600' %}"></i>
+                <span class="text-sm">TopUps</span>
+            </span>
+{#            <i class="bi bi-plus text-gray-400"></i>#}
+        </a>
+        <div class="flex items-center justify-between py-2 px-2 hover:bg-gray-100 rounded">
+            <div class="flex items-center space-x-2">
+                <div class="flex items-center space-x-1">
+                    <i class="bi bi-file-earmark-person text-orange-500"></i>
+                    <span class="text-sm">Applications</span>
+                </div>
+                <span class="bg-blue-100 text-blue-700 text-xs px-1 rounded">New</span>
+            </div>
+            <i class="bi bi-plus text-gray-400"></i>
+        </div>
+        <div class="flex items-center justify-between py-2 px-2 hover:bg-gray-100 rounded">
+            <div class="flex items-center space-x-2">
+                <i class="bi bi-shield-check text-indigo-500"></i>
+                <span class="text-sm">KYC Documents</span>
+            </div>
+            <i class="bi bi-plus text-gray-400"></i>
+        </div>
+        <div class="flex items-center justify-between py-2 px-2 hover:bg-gray-100 rounded">
+            <div class="flex items-center space-x-2">
+                <i class="bi bi-bank text-teal-500"></i>
+                <span class="text-sm">Accounts</span>
+            </div>
+            <i class="bi bi-plus text-gray-400"></i>
+        </div>
+        <div class="flex items-center justify-between py-2 px-2 hover:bg-gray-100 rounded">
+            <div class="flex items-center space-x-2">
+                <div class="flex items-center space-x-1">
+                    <i class="bi bi-graph-up text-pink-500"></i>
+                    <span class="text-sm">Analytics</span>
+                </div>
+                <span class="bg-blue-100 text-blue-700 text-xs px-1 rounded">Pro</span>
+            </div>
+            <i class="bi bi-plus text-gray-400"></i>
+        </div>
+    </div>
+</div>
+
+<!-- Reports Section -->
+<div class="px-4 pb-4 border-t pt-4">
+    <div class="flex items-center justify-between py-2 px-2 hover:bg-gray-100 rounded">
+        <div class="flex items-center space-x-2">
+            <i class="bi bi-file-earmark-bar-graph text-emerald-500"></i>
+            <span class="text-sm">Reports</span>
+        </div>
+        <i class="bi bi-plus text-gray-400"></i>
+    </div>
+</div>

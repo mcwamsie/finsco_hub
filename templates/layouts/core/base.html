@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en" class="w-full h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Dashboard{% endblock %}- {{ app_name | title }}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+
+    <!--- Google Nunito Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.css" rel="stylesheet">
+
+    <!-- Notyf CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css">
+
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+
+    <style>
+        .scrollbar-thin::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .scrollbar-thin::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+
+        .scrollbar-thin::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 2px;
+        }
+
+        .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+        }
+
+        /* Add to your CSS file or in a <style> block */
+        .htmx-indicator {
+            display: none !important;
+            opacity: 0 !important;
+        }
+
+        .htmx-request .htmx-indicator, .htmx-request.htmx-indicator {
+            display: flex !important;
+            opacity: 1 !important;
+        }
+
+        .htmx-request .button-text {
+            opacity: 0 !important;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 w-full h-full scrollbar-thin">
+<!-- Main Application -->
+<div class="bg-white w-full h-full flex flex-col pt-14">
+    <!-- Top Navigation -->
+    {% include "layouts/core/header.html" %}
+    <!-- Table Header -->
+
+    <aside id="default-sidebar"
+           class="w-[280px] z-40 fixed top-0 lg:top-14 left-0 p-2 bg-gray-50 border-r bottom-0 overflow-y-auto transition-transform -translate-x-full lg:translate-x-0">
+        <!-- Views Section -->
+        {% block sidebar %}{% endblock %}
+    </aside>
+
+    <!-- Main Content -->
+    <div class="flex lg:pl-[280px] flex-1 flex-col">
+        {% block content %}{% endblock %}
+    </div>
+</div>
+
+<!-- Tooltip showing text at bottom -->
+{#<div class="fixed bottom-4 right-4 bg-blue-600 text-white px-4 py-2 rounded shadow-lg">#}
+{#    <span class="text-sm">id overall product improvement.</span>#}
+{#</div>#}
+
+<!-- Notyf JS -->
+<script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
+
+<!-- Flowbite JS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.js"></script>
+
+<script>
+    // Initialize Notyf
+    const notyf = new Notyf({
+        duration: 4000,
+        position: {
+            x: 'right',
+            y: 'top',
+        },
+        types: [
+            {
+                type: 'warning',
+                background: 'orange',
+                icon: {
+                    className: 'bi bi-exclamation-triangle',
+                    tagName: 'i',
+                    text: ''
+                }
+            },
+            {
+                type: 'info',
+                background: 'blue',
+                icon: {
+                    className: 'bi bi-info-circle',
+                    tagName: 'i',
+                    text: ''
+                }
+            }
+        ]
+    });
+
+    // Django Messages Integration
+    {% if messages %}
+        {% for message in messages %}
+            {% if message.tags == 'error' %}
+                notyf.error('{{ message|escapejs }}');
+            {% elif message.tags == 'warning' %}
+                notyf.open({
+                    type: 'warning',
+                    message: '{{ message|escapejs }}'
+                });
+            {% elif message.tags == 'info' %}
+                notyf.open({
+                    type: 'info',
+                    message: '{{ message|escapejs }}'
+                });
+            {% elif message.tags == 'success' %}
+                notyf.success('{{ message|escapejs }}');
+            {% else %}
+                notyf.success('{{ message|escapejs }}');
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+
+    // Global notification functions for JavaScript usage
+    window.showNotification = {
+        success: function (message) {
+            notyf.success(message);
+        },
+        error: function (message) {
+            notyf.error(message);
+        },
+        warning: function (message) {
+            notyf.open({
+                type: 'warning',
+                message: message
+            });
+        },
+        info: function (message) {
+            notyf.open({
+                type: 'info',
+                message: message
+            });
+        }
+    };
+
+    // HTMX integration for notifications
+    document.body.addEventListener('htmx:afterRequest', function (evt) {
+        // Check for notification headers from server
+        const response = evt.detail.xhr;
+
+        if (response.getResponseHeader('HX-Trigger')) {
+            const triggers = JSON.parse(response.getResponseHeader('HX-Trigger'));
+
+            if (triggers.notification) {
+                const notification = triggers.notification;
+                window.showNotification[notification.type](notification.message);
+            }
+        }
+    });
+
+    // Handle HTMX errors
+    document.body.addEventListener('htmx:responseError', function (evt) {
+        window.showNotification.error('An error occurred. Please try again.');
+    });
+
+    document.body.addEventListener('htmx:sendError', function (evt) {
+        window.showNotification.error('Network error. Please check your connection.');
+    });
+</script>
+
+{% block modals %}{% endblock %}
+<script>
+    const modalOptions = {
+        placement: 'bottom-right',
+        backdrop: 'static',
+        backdropClasses: 'bg-gray-900/50 fixed inset-0 z-40',
+        {#closable: true,#}
+        {#onHide: () => console.log('Modal hidden'),#}
+        {#onShow: () => console.log('Modal shown'),#}
+        {#onToggle: () => console.log('Modal toggled')#}
+    };
+</script>
+<script>
+    // Form state management and loading indicators
+    function setupFormField(fieldId) {
+        const field = document.getElementById(fieldId);
+        if (!field) return;
+
+        // Character counter for textarea fields
+        const counter = document.getElementById(fieldId + '-counter');
+        if (field.tagName === 'TEXTAREA' && counter) {
+            // Update counter on load
+            counter.textContent = field.value.length;
+
+            // Update counter on input
+            field.addEventListener('input', function() {
+                counter.textContent = this.value.length;
+            });
+        }
+    }
+
+    // File upload handler with loading states
+    function handleFileUpload(fieldId) {
+        const fileInput = document.getElementById(fieldId);
+        if (!fileInput) {
+            console.warn(`File input with ID '${fieldId}' not found`);
+            return;
+        }
+
+        // Try to find upload area as parent first, then as sibling
+        let uploadArea = fileInput.closest('.file-upload-area');
+        if (!uploadArea) {
+            // Look for upload area as a sibling (when file input is hidden)
+            const parent = fileInput.parentElement;
+            if (parent) {
+                uploadArea = parent.querySelector('.file-upload-area');
+            }
+        }
+        
+        if (!uploadArea) {
+            console.warn(`Upload area not found for field '${fieldId}'`);
+            return;
+        }
+
+        const uploadContent = uploadArea.querySelector('.upload-content');
+        const uploadLoading = uploadArea.querySelector('.upload-loading');
+        const uploadDisabled = uploadArea.querySelector('.upload-disabled');
+
+        // Check if form is currently submitting
+        const form = fileInput.closest('form');
+        if (form && form.classList.contains('submitting')) {
+            return; // Don't allow uploads during form submission
+        }
+
+        fileInput.click();
+
+        fileInput.addEventListener('change', function(e) {
+            if (e.target.files.length > 0) {
+                // Show loading state only if elements exist
+                if (uploadContent && uploadLoading) {
+                    uploadContent.classList.add('hidden');
+                    uploadLoading.classList.remove('hidden');
+                }
+
+                // Simulate upload progress (replace with actual upload logic)
+                setTimeout(() => {
+                    if (uploadLoading && uploadContent) {
+                        uploadLoading.classList.add('hidden');
+                        uploadContent.classList.remove('hidden');
+                    }
+
+                    // Show selected file info
+                    const fileName = e.target.files[0].name;
+                    const fileInfo = document.createElement('div');
+                    fileInfo.className = 'text-sm text-green-600 mt-2 flex items-center gap-1';
+                    fileInfo.innerHTML = `<i class="bi bi-check-circle"></i> ${fileName} selected`;
+
+                    // Remove any existing file info
+                    const existingInfo = uploadArea.querySelector('.file-info');
+                    if (existingInfo) existingInfo.remove();
+
+                    fileInfo.classList.add('file-info');
+                    uploadArea.appendChild(fileInfo);
+                }, 1500);
+            }
+        });
+    }
+
+    // Global form submission handler
+    function setupFormSubmission() {
+        document.addEventListener('DOMContentLoaded', function() {
+            const forms = document.querySelectorAll('form');
+
+            forms.forEach(form => {
+                form.addEventListener('submit', function(e) {
+                    // Prevent double submission
+                    if (form.classList.contains('submitting')) {
+                        e.preventDefault();
+                        return;
+                    }
+
+                    // Mark form as submitting
+                    form.classList.add('submitting');
+
+                    // Disable all form fields and buttons
+                    disableFormElements(form);
+
+                    // Show loading indicators on submit buttons
+                    showButtonLoading(form);
+
+                    // Disable file upload areas
+                    disableFileUploads(form);
+
+                    // Re-enable after timeout as fallback
+                    setTimeout(() => {
+                        enableFormElements(form);
+                        hideButtonLoading(form);
+                        enableFileUploads(form);
+                        form.classList.remove('submitting');
+                    }, 10000);
+                });
+            });
+        });
+    }
+
+    function disableFormElements(form) {
+        const elements = form.querySelectorAll('.form-field, button:not([type="button"])');
+        elements.forEach(element => {
+            element.disabled = true;
+            element.classList.add('disabled-state');
+        });
+
+        // Disable dropdown arrows
+        const arrows = form.querySelectorAll('.select-arrow');
+        arrows.forEach(arrow => {
+            arrow.style.opacity = '0.3';
+        });
+    }
+
+    function enableFormElements(form) {
+        const elements = form.querySelectorAll('.form-field, button');
+        elements.forEach(element => {
+            element.disabled = false;
+            element.classList.remove('disabled-state');
+        });
+
+        // Re-enable dropdown arrows
+        const arrows = form.querySelectorAll('.select-arrow');
+        arrows.forEach(arrow => {
+            arrow.style.opacity = '1';
+        });
+    }
+
+    function showButtonLoading(form) {
+        const submitButtons = form.querySelectorAll('button[type="submit"]');
+        submitButtons.forEach(button => {
+            const originalContent = button.innerHTML;
+            button.setAttribute('data-original-content', originalContent);
+
+            // Create loading content
+            const loadingContent = `
+                <div class="flex items-center justify-center gap-2">
+                    <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    <span>Processing...</span>
+                </div>
+            `;
+
+            button.innerHTML = loadingContent;
+            button.classList.add('loading-state');
+        });
+    }
+
+    function hideButtonLoading(form) {
+        const submitButtons = form.querySelectorAll('button[type="submit"].loading-state');
+        submitButtons.forEach(button => {
+            const originalContent = button.getAttribute('data-original-content');
+            if (originalContent) {
+                button.innerHTML = originalContent;
+                button.removeAttribute('data-original-content');
+            }
+            button.classList.remove('loading-state');
+        });
+    }
+
+    function disableFileUploads(form) {
+        const uploadAreas = form.querySelectorAll('.file-upload-area');
+        uploadAreas.forEach(area => {
+            const uploadContent = area.querySelector('.upload-content');
+            const uploadDisabled = area.querySelector('.upload-disabled');
+
+            if (uploadContent && uploadDisabled) {
+                uploadContent.classList.add('hidden');
+                uploadDisabled.classList.remove('hidden');
+            }
+
+            area.style.pointerEvents = 'none';
+            area.classList.add('opacity-50');
+        });
+    }
+
+    function enableFileUploads(form) {
+        const uploadAreas = form.querySelectorAll('.file-upload-area');
+        uploadAreas.forEach(area => {
+            const uploadContent = area.querySelector('.upload-content');
+            const uploadDisabled = area.querySelector('.upload-disabled');
+
+            if (uploadContent && uploadDisabled) {
+                uploadContent.classList.remove('hidden');
+                uploadDisabled.classList.add('hidden');
+            }
+
+            area.style.pointerEvents = 'auto';
+            area.classList.remove('opacity-50');
+        });
+    }
+
+    // Initialize form submission handling
+    setupFormSubmission();
+
+    // Auto-setup character counters and other field-specific functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        // Setup all form fields
+        const textareas = document.querySelectorAll('textarea');
+        textareas.forEach(textarea => {
+            setupFormField(textarea.id);
+        });
+    });
+</script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

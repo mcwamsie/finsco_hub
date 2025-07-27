@@ -1,0 +1,86 @@
+{% extends 'layouts/core/base.html' %}
+{% load static %}
+
+{% block title %}
+    Service Requests - Services
+{% endblock %}
+
+{% block content %}
+    <!-- Header -->
+    {% include "pages/core/services/partials/request-list/header.html" %}
+
+    <!-- Toolbar -->
+    {% include "pages/core/services/partials/request-list/toolbar.html" %}
+
+    <!-- Service Requests List Container -->
+    <div id="request-list-container"
+         hx-get="{% url 'services:requests_list' %}"
+         hx-trigger="load" class="flex flex-col flex-1">
+        <!-- Service requests list will be loaded here via HTMX -->
+        <div class="flex items-center justify-center py-12">
+            <div class="text-center">
+                <i class="bi bi-clipboard-check text-4xl text-gray-400 mb-4"></i>
+                <p class="text-gray-500">Loading service requests...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Container -->
+    <div id="modal-container"></div>
+
+    <!-- Edit Service Request Modal Container -->
+    <div id="edit-request-modal-container"></div>
+{% endblock %}
+
+{% block sidebar %}
+    {% include 'layouts/core/sidebar/services.html' %}
+{% endblock %}
+
+{% block modals %}
+    {% include "pages/core/services/partials/request-list/new-modal.html" with modal_id="new-request-modal" %}
+    {% include "pages/core/services/partials/request-list/edit-modal.html" with modal_id="edit-request-modal" %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize modals
+    const $newRequestModalElement = document.getElementById('new-request-modal');
+    const $editRequestModalElement = document.getElementById('edit-request-modal');
+    
+    const modalOptions = {
+        placement: 'bottom-right',
+        backdrop: 'dynamic',
+        backdropClasses: 'bg-gray-900/50 fixed inset-0 z-40',
+        closable: true,
+        onHide: () => {
+            console.log('modal is hidden');
+        },
+        onShow: () => {
+            console.log('modal is shown');
+        },
+        onToggle: () => {
+            console.log('modal has been toggled');
+        },
+    };
+
+    const newModalInstanceOptions = {id: 'new-request-modal', override: true};
+    const editModalInstanceOptions = {id: 'edit-request-modal', override: true};
+
+    const new_modal = new Modal($newRequestModalElement, modalOptions, newModalInstanceOptions);
+    const edit_modal = new Modal($editRequestModalElement, modalOptions, editModalInstanceOptions);
+
+    // Make modals globally available
+    window.new_modal = new_modal;
+    window.edit_modal = edit_modal;
+
+    // Auto-refresh quick stats every 30 seconds
+    setInterval(function() {
+        htmx.ajax('GET', '{% url "services:request_quick_stats" %}', {
+            target: '#request-quick-stats',
+            swap: 'innerHTML'
+        });
+    }, 30000);
+});
+</script>
+{% endblock %}

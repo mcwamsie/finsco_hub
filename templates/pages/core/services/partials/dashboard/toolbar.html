@@ -1,0 +1,36 @@
+<!-- Dashboard Toolbar -->
+<div class="bg-gray-50 border-b border-gray-200 px-6 py-3">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div class="flex items-center space-x-4">
+            <div class="flex items-center space-x-2">
+                <i class="bi bi-calendar3 text-gray-400"></i>
+                <span class="text-sm text-gray-600">Last updated: <span id="last-updated">{{ current_time|date:"M d, Y H:i" }}</span></span>
+            </div>
+        </div>
+        <div class="flex items-center space-x-3">
+            <button type="button"
+                    onclick="location.reload()"
+                    class="inline-flex items-center px-3 py-2 border border-gray-300 rounded-sm shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                <i class="bi bi-arrow-clockwise mr-2"></i>
+                Refresh
+            </button>
+            <div class="relative">
+                <select class="block w-full pl-3 pr-10 py-2 text-sm border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 rounded-sm"
+                        onchange="filterByPeriod(this.value)">
+                    <option value="today">Today</option>
+                    <option value="week" selected>This Week</option>
+                    <option value="month">This Month</option>
+                    <option value="quarter">This Quarter</option>
+                    <option value="year">This Year</option>
+                </select>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function filterByPeriod(period) {
+    // Add period filtering logic here
+    console.log('Filtering by period:', period);
+}
+</script>

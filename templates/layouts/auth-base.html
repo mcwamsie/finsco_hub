@@ -1,0 +1,516 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Finsco Hub{% endblock %}</title>
+
+    <!-- Tailwind CSS 4 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+
+    <!-- Flowbite -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.css" rel="stylesheet"/>
+
+    <!-- HTMX -->
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    
+    <!-- Notyf CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css">
+
+    <!-- Custom Tailwind Config -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            200: '#bfdbfe',
+                            300: '#93c5fd',
+                            400: '#60a5fa',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            800: '#1e40af',
+                            900: '#1e3a8a',
+                        }
+                    },
+                    fontFamily: {
+                        'sans': ['Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'Noto Sans', 'sans-serif'],
+                    },
+                    backgroundImage: {
+                        'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
+                        'auth-gradient': 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .auth-gradient {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #2563eb 100%);
+        }
+
+        .glass-effect {
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .carousel-dots {
+            position: absolute;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .carousel-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.4);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .carousel-dot.active {
+            background: white;
+            width: 24px;
+            border-radius: 4px;
+        }
+
+        .floating-shapes {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        .shape {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+        }
+
+        .shape-1 {
+            width: 200px;
+            height: 200px;
+            top: 10%;
+            right: 15%;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .shape-2 {
+            width: 150px;
+            height: 150px;
+            bottom: 20%;
+            left: 10%;
+            animation: float 8s ease-in-out infinite reverse;
+        }
+
+        .shape-3 {
+            width: 100px;
+            height: 100px;
+            top: 60%;
+            right: 30%;
+            animation: float 7s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0px) rotate(0deg);
+            }
+            50% {
+                transform: translateY(-20px) rotate(180deg);
+            }
+        }
+
+        .integration-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            padding: 2rem;
+            text-align: center;
+            color: white;
+        }
+
+        .permission-modal {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 16px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+    </style>
+</head>
+<body class="h-full bg-gray-50">
+<div class="min-h-screen flex">
+    <!-- Left Side - Sign In Form -->
+    <div class="flex-1 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-20 xl:px-24 bg-white">
+        <div class="mx-auto w-full max-w-md lg:w-[480px]">
+            <!-- Logo -->
+            <div class="flex items-center mb-8">
+                <div class="flex items-center space-x-4">
+{#                    <div class="w-8 h-8 bg-black rounded-lg flex items-center justify-center">#}
+{#                        <div class="w-4 h-4 bg-white rounded-sm"></div>#}
+{#                    </div>#}
+{#                    #}
+                    <img class="w-20 h-20" src="{% static 'img/logo-icon.png' %}" alt="8D Logo">
+                    <span class="text-xl font-semibold text-gray-900">{{ app_name }}</span>
+                </div>
+            </div>
+            {% block content %} {% endblock %}
+        </div>
+    </div>
+    <!-- Right Side - Carousel -->
+    <div class="hidden lg:block relative flex-1 auth-gradient">
+        <!-- Floating shapes -->
+        <div class="floating-shapes">
+            <div class="shape shape-1"></div>
+            <div class="shape shape-2"></div>
+            <div class="shape shape-3"></div>
+        </div>
+
+        <!-- Carousel Container -->
+        <div id="auth-carousel" class="relative w-full h-full" data-carousel="slide">
+            <!-- Carousel wrapper -->
+            <div class="relative w-full h-full overflow-hidden">
+                <!-- Item 1 -->
+                <div class="hidden duration-700 ease-in-out" data-carousel-item="active">
+                    <div class="absolute inset-0 flex items-center justify-center p-12">
+                        <div class="text-center text-white max-w-md">
+                            <div class="mb-8">
+                                <div class="w-16 h-16 bg-white bg-opacity-20 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                                    <i class="bi bi-puzzle text-2xl text-white"></i>
+                                </div>
+                                <h3 class="text-2xl font-bold mb-4">15 new integrations added</h3>
+                                <p class="text-blue-100 text-lg leading-relaxed">
+                                    You asked and we listened! We've added a bunch of new integrations to speed up your
+                                    workflow.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Item 2 -->
+                <div class="hidden duration-700 ease-in-out" data-carousel-item>
+                    <div class="absolute inset-0 flex items-center justify-center p-12">
+                        <div class="text-center text-white max-w-md">
+                            <div class="mb-8">
+                                <div class="w-16 h-16 bg-white bg-opacity-20 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                                    <i class="bi bi-shield-check text-2xl text-white"></i>
+                                </div>
+                                <h3 class="text-2xl font-bold mb-4">Enhanced Security Features</h3>
+                                <p class="text-blue-100 text-lg leading-relaxed">
+                                    Your data security is our priority. New advanced encryption and monitoring features.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Item 3 -->
+                <div class="hidden duration-700 ease-in-out" data-carousel-item>
+                    <div class="absolute inset-0 flex items-center justify-center p-12">
+                        <div class="text-center text-white max-w-md">
+                            <div class="mb-8">
+                                <div class="w-16 h-16 bg-white bg-opacity-20 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                                    <i class="bi bi-lightning text-2xl text-white"></i>
+                                </div>
+                                <h3 class="text-2xl font-bold mb-4">Lightning Fast Performance</h3>
+                                <p class="text-blue-100 text-lg leading-relaxed">
+                                    Experience blazing fast load times with our optimized infrastructure.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Slider indicators -->
+            <div class="absolute z-30 flex space-x-3 -translate-x-1/2 bottom-8 left-1/2">
+                <button type="button" class="w-3 h-3 rounded-full bg-white bg-opacity-50" aria-current="true"
+                        aria-label="Slide 1" data-carousel-slide-to="0"></button>
+                <button type="button" class="w-8 h-3 rounded-full bg-white" aria-current="false" aria-label="Slide 2"
+                        data-carousel-slide-to="1"></button>
+                <button type="button" class="w-3 h-3 rounded-full bg-white bg-opacity-50" aria-current="false"
+                        aria-label="Slide 3" data-carousel-slide-to="2"></button>
+            </div>
+
+            <!-- Slider controls -->
+            <button type="button"
+                    class="absolute top-0 left-0 z-30 flex items-center justify-center h-full px-4 cursor-pointer group focus:outline-none"
+                    data-carousel-prev>
+                <span class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-white/30 group-hover:bg-white/50 group-focus:ring-4 group-focus:ring-white group-focus:outline-none">
+                    <i class="bi bi-chevron-left text-white"></i>
+                    <span class="sr-only">Previous</span>
+                </span>
+            </button>
+            <button type="button"
+                    class="absolute top-0 right-0 z-30 flex items-center justify-center h-full px-4 cursor-pointer group focus:outline-none"
+                    data-carousel-next>
+                <span class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-white/30 group-hover:bg-white/50 group-focus:ring-4 group-focus:ring-white group-focus:outline-none">
+                    <i class="bi bi-chevron-right text-white"></i>
+                    <span class="sr-only">Next</span>
+                </span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Permission Modal -->
+<div id="permission-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-black bg-opacity-50">
+    <div class="permission-modal w-full max-w-md p-6">
+        <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-black rounded-lg flex items-center justify-center">
+                    <div class="w-5 h-5 bg-white rounded-sm"></div>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <i class="bi bi-arrow-right text-gray-400"></i>
+                    <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+                        <i class="bi bi-shield text-white text-sm"></i>
+                    </div>
+                </div>
+            </div>
+            <button id="close-modal" class="text-gray-400 hover:text-gray-600">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+
+        <h3 class="text-lg font-semibold text-gray-900 mb-2">Connect Finsco Hub to Linear</h3>
+        <p class="text-sm text-gray-600 mb-6">
+            Prioritize work based on customer needs and build a tighter feedback loop with your customers.
+        </p>
+
+        <div class="space-y-3 mb-6">
+            <div class="text-sm font-medium text-gray-900 mb-3">Finsco Hub would like to</div>
+
+            <div class="flex items-start space-x-3">
+                <input type="checkbox" id="access-company"
+                       class="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" checked>
+                <label for="access-company" class="text-sm text-gray-700">Access basic company information and
+                    details</label>
+            </div>
+
+            <div class="flex items-start space-x-3">
+                <input type="checkbox" id="access-reports"
+                       class="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" checked>
+                <label for="access-reports" class="text-sm text-gray-700">Access and edit bug reports and create new
+                    issues</label>
+            </div>
+
+            <div class="flex items-start space-x-3">
+                <input type="checkbox" id="change-status"
+                       class="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                <label for="change-status" class="text-sm text-gray-700">Change issue status and assignee of
+                    issues</label>
+            </div>
+        </div>
+
+        <div class="flex items-center justify-between">
+            <button class="text-sm text-blue-600 hover:text-blue-500 flex items-center">
+                <i class="bi bi-question-circle mr-1"></i>
+                How it works
+            </button>
+            <div class="flex space-x-3">
+                <button id="cancel-btn"
+                        class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
+                    Cancel
+                </button>
+                <button id="allow-btn"
+                        class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700">
+                    Allow access
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Flowbite JS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.js"></script>
+
+<!-- Notyf JS -->
+<script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
+
+<script>
+// Initialize Notyf
+const notyf = new Notyf({
+    duration: 4000,
+    position: {
+        x: 'right',
+        y: 'top',
+    },
+    types: [
+        {
+            type: 'warning',
+            background: 'orange',
+            icon: {
+                className: 'bi bi-exclamation-triangle',
+                tagName: 'i',
+                text: ''
+            }
+        },
+        {
+            type: 'info',
+            background: 'blue',
+            icon: {
+                className: 'bi bi-info-circle',
+                tagName: 'i',
+                text: ''
+            }
+        }
+    ]
+});
+
+// Django Messages Integration
+{% if messages %}
+    {% for message in messages %}
+        {% if message.tags == 'error' %}
+            notyf.error('{{ message|escapejs }}');
+        {% elif message.tags == 'warning' %}
+            notyf.open({
+                type: 'warning',
+                message: '{{ message|escapejs }}'
+            });
+        {% elif message.tags == 'info' %}
+            notyf.open({
+                type: 'info',
+                message: '{{ message|escapejs }}'
+            });
+        {% elif message.tags == 'success' %}
+            notyf.success('{{ message|escapejs }}');
+        {% else %}
+            notyf.success('{{ message|escapejs }}');
+        {% endif %}
+    {% endfor %}
+{% endif %}
+
+// Global notification functions for JavaScript usage
+window.showNotification = {
+    success: function(message) {
+        notyf.success(message);
+    },
+    error: function(message) {
+        notyf.error(message);
+    },
+    warning: function(message) {
+        notyf.open({
+            type: 'warning',
+            message: message
+        });
+    },
+    info: function(message) {
+        notyf.open({
+            type: 'info',
+            message: message
+        });
+    }
+};
+
+// HTMX integration for notifications
+document.body.addEventListener('htmx:afterRequest', function(evt) {
+    // Check for notification headers from server
+    const response = evt.detail.xhr;
+    
+    if (response.getResponseHeader('HX-Trigger')) {
+        const triggers = JSON.parse(response.getResponseHeader('HX-Trigger'));
+        
+        if (triggers.notification) {
+            const notification = triggers.notification;
+            window.showNotification[notification.type](notification.message);
+        }
+    }
+});
+
+// Handle HTMX errors
+document.body.addEventListener('htmx:responseError', function(evt) {
+    window.showNotification.error('An error occurred. Please try again.');
+});
+
+document.body.addEventListener('htmx:sendError', function(evt) {
+    window.showNotification.error('Network error. Please check your connection.');
+});
+</script>
+
+    <script>
+        // Initialize Flowbite carousel
+        document.addEventListener('DOMContentLoaded', function () {
+            // Auto-advance carousel every 5 seconds
+            setInterval(function () {
+                const nextButton = document.querySelector('[data-carousel-next]');
+                if (nextButton) {
+                    nextButton.click();
+                }
+            }, 100000);
+
+            const is_informed = localStorage.getItem('is_informed');
+
+            // Modal functionality
+            const modal = document.getElementById('permission-modal');
+            const closeModal = document.getElementById('close-modal');
+            const cancelBtn = document.getElementById('cancel-btn');
+            const allowBtn = document.getElementById('allow-btn');
+
+            if (!is_informed) {
+
+                // Show modal after 3 seconds (for demo purposes)
+                setTimeout(() => {
+                    modal.classList.remove('hidden');
+                    modal.classList.add('flex');
+                }, 3000);
+
+                // Close modal handlers
+                [closeModal, cancelBtn].forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        modal.classList.add('hidden');
+                        modal.classList.remove('flex');
+                    });
+                });
+
+                // Allow access handler
+                allowBtn.addEventListener('click', () => {
+                    modal.classList.add('hidden');
+                    modal.classList.remove('flex');
+                    // Add your integration logic here
+                });
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) {
+                        modal.classList.add('hidden');
+                        modal.classList.remove('flex');
+                    }
+                });
+
+                localStorage.setItem('is_informed', 'true');
+            }
+
+
+            // Close modal when clicking outside
+
+        });
+    </script>
+
+{% block scripts %}
+{% endblock %}
+</body>
+</html>

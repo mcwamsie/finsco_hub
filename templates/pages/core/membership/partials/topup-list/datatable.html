@@ -1,0 +1,299 @@
+<div class="bg-white px-4 py-3 border-b text-sm">
+    <div class="flex md:items-center md:justify-between flex-col md:flex-row gap-3">
+        <div class="relative w-full md:w-1/2 xl:w-1/3 2xl:w-1/4">
+            <label>
+                <input
+                        type="text"
+                        name="search"
+                        value="{{ search }}"
+                        placeholder="Search topups..."
+                        hx-get="{% url 'membership:topups_list' %}"
+                        hx-target="#topup-list-container"
+                        hx-trigger="keyup changed delay:300ms"
+                        hx-include="[name='status'], [name='member']"
+                        class="pl-10 pr-4 py-2 border border-gray-300 w-full rounded-sm focus:ring-1 focus:ring-blue-500 focus:border-transparent">
+            </label>
+            <i class="bi bi-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+        </div>
+        <div class="flex items-center space-x-4">
+
+
+            <label>
+                <select
+                        name="status"
+                        hx-get="{% url 'membership:topups_list' %}"
+                        hx-target="#topup-list-container"
+                        hx-trigger="change"
+                        hx-include="[name='search'], [name='member']"
+                        class="px-3 py-2 border border-gray-300 rounded-sm focus:ring-1 focus:ring-blue-500">
+                    <option value="">All Status</option>
+                    {% for value, label in status_choices %}
+                        <option value="{{ value }}"
+                                {% if status_filter == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+
+            <label>
+                <select
+                        name="member"
+                        hx-get="{% url 'membership:topups_list' %}"
+                        hx-target="#topup-list-container"
+                        hx-trigger="change"
+                        hx-include="[name='search'], [name='status']"
+                        class="px-3 py-2 border border-gray-300 rounded-sm focus:ring-2 focus:ring-blue-500">
+                    <option value="">All Members</option>
+                    {% for member in members %}
+                        <option value="{{ member.id }}"
+                                {% if member_filter == member.id|stringformat:"s" %}selected{% endif %}>{{ member.name }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+        </div>
+
+        {#            <div class="text-sm text-gray-500">#}
+        {#                {{ page_obj.paginator.count }} topup{{ page_obj.paginator.count|pluralize:"s" }}#}
+        {#            </div>#}
+    </div>
+</div>
+<!-- TopUp List Table -->
+<div class="overflow-auto scrollbar-thin flex-1">
+    <!-- Search and Filters -->
+
+
+    <table class="w-full">
+        <thead class="bg-gray-50 border-b">
+        <tr>
+            <th class="w-12 p-3 text-left border-r">#</th>
+            <th class="min-w-48 p-3 text-left border-r">
+                <div class="flex items-center space-x-2">
+                    <i class="bi bi-credit-card text-gray-400"></i>
+                    <span class="text-sm font-medium">TopUp</span>
+                    <i class="bi bi-chevron-down text-gray-400"></i>
+                </div>
+            </th>
+            <th class="min-w-32 p-3 text-left border-r">
+                <div class="flex items-center space-x-2">
+                    <i class="bi bi-people text-gray-400"></i>
+                    <span class="text-sm font-medium">Member</span>
+                    <i class="bi bi-chevron-down text-gray-400"></i>
+                </div>
+            </th>
+            <th class="min-w-32 p-3 text-left border-r">
+                <div class="flex items-center space-x-2">
+                    <i class="bi bi-currency-dollar text-gray-400"></i>
+                    <span class="text-sm font-medium">Amount</span>
+                    <i class="bi bi-chevron-down text-gray-400"></i>
+                </div>
+            </th>
+            <th class="min-w-32 p-3 text-left border-r">
+                <div class="flex items-center space-x-2">
+                    <i class="bi bi-circle text-gray-400"></i>
+                    <span class="text-sm font-medium">Status</span>
+                    <i class="bi bi-chevron-down text-gray-400"></i>
+                </div>
+            </th>
+            <th class="min-w-48 p-3 text-left border-r">
+                <div class="flex items-center space-x-2">
+                    <i class="bi bi-phone text-gray-400"></i>
+                    <span class="text-sm font-medium">Contact</span>
+                    <i class="bi bi-chevron-down text-gray-400"></i>
+                </div>
+            </th>
+            <th class="min-w-32 p-3 text-left border-r">
+                <div class="flex items-center space-x-2">
+                    <i class="bi bi-bank text-gray-400"></i>
+                    <span class="text-sm font-medium">Reference</span>
+                    <i class="bi bi-chevron-down text-gray-400"></i>
+                </div>
+            </th>
+            <th class="p-3 text-left">
+                <div class="flex items-center space-x-2">
+                    <i class="bi bi-gear text-gray-400"></i>
+                    <span class="text-sm font-medium"></span>
+                </div>
+            </th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for topup in topups %}
+            <tr class="border-b hover:bg-gray-50">
+                <td class="py-1.5 px-2 border text-sm text-gray-500 text-end">{{ forloop.counter }}</td>
+                <td class="py-1.5 px-2 border">
+                    <a href="{% url 'membership:topups_detail' topup.id %}"
+                       class="flex items-center space-x-3  text-sm font-medium">
+                        <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
+                            {% if topup.photo %}
+                                <img src="{{ topup.photo.url }}" alt="TopUp Receipt" 
+                                     class="w-full h-full object-cover">
+                            {% else %}
+                                <span class="text-green-600 font-medium text-sm"><i class="bi bi-credit-card"></i></span>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <p class="font-medium text-gray-900 whitespace-no-wrap">
+                                TopUp #{{ topup.id }}
+                            </p>
+                            <p class="text-sm text-gray-500">
+                                {{ topup.created_at|date:"M d, Y H:i" }}
+                            </p>
+                        </div>
+                    </a>
+                </td>
+                <td class="py-1.5 px-2 border text-end">
+                    <a href="{% url 'membership:members_detail' topup.member.membership_number %}"
+                       class="text-blue-600 hover:text-blue-800">
+                        <p class="font-medium text-gray-900">{{ topup.member.name }}</p>
+                        <span class="font-mono text-sm text-gray-500">{{ topup.member.membership_number }}</span>
+                    </a>
+                </td>
+                <td class="py-1.5 px-2 border">
+                    <div class="text-sm">
+                        <p class="font-medium text-gray-900">{{ topup.amount|floatformat:2 }}</p>
+                        <p class="text-gray-500">Net: {{ topup.net_amount|floatformat:2 }}</p>
+                    </div>
+                </td>
+                <td class="py-1.5 px-2 border">
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                        {% if topup.status == 'A' %}bg-green-100 text-green-800
+                        {% elif topup.status == 'P' %}bg-yellow-100 text-yellow-800
+                        {% elif topup.status == 'R' %}bg-red-100 text-red-800
+                        {% else %}bg-gray-100 text-gray-800{% endif %}">
+                        {{ topup.get_status_display }}
+                    </span>
+                </td>
+                <td class="py-1.5 px-2 border">
+                    <div class="text-sm">
+                        {% if topup.mobile_number %}
+                            <p class="text-gray-900">{{ topup.mobile_number }}</p>
+                        {% endif %}
+                        {% if topup.member.email %}
+                            <p class="text-gray-500">{{ topup.member.email }}</p>
+                        {% endif %}
+                    </div>
+                </td>
+                <td class="py-1.5 px-2 border">
+                    <div class="text-sm">
+                        {% if topup.bank_reference %}
+                            <p class="text-gray-900 font-mono">{{ topup.bank_reference }}</p>
+                        {% else %}
+                            <span class="text-gray-400">-</span>
+                        {% endif %}
+                    </div>
+                </td>
+                <td class="py-1.5 px-2 border text-center">
+
+                    <button id="dropdownMenuIconButton" data-dropdown-toggle="dropdownDots-{{ topup.id }}"
+                            class="inline-flex items-center p-2 text-sm font-medium text-center text-gray-900 bg-white rounded-sm hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-50"
+                            type="button">
+                        <i class="bi bi-three-dots-vertical"></i>
+                    </button>
+
+                    <!-- Dropdown menu -->
+                    <div id="dropdownDots-{{ topup.id }}"
+                         class="z-10 hidden bg-white divide-y divide-gray-100 rounded-sm shadow-lg w-44">
+                        <ul class="py-2 text-sm text-gray-700 text-start"
+                            aria-labelledby="dropdownMenuIconButton">
+                            <li>
+                                <a href="{% url 'membership:topups_detail' topup.id %}"
+                                   class="group block px-4 py-2 hover:bg-gray-100" title="View TopUp Details">
+                                    <i class="bi bi-eye text-blue-600 group-hover:text-blue-800"></i>
+                                    <span class="ms-2">View</span>
+                                </a>
+                            </li>
+                            <li>
+                                <button hx-get="{% url 'membership:topups_update' topup.id %}"
+                                        hx-indicator="#edit-topup-modal-overlay"
+                                        hx-target="#edit-topup-modal-container"
+                                        title="Edit" onclick="edit_modal.show()"
+                                        class="block px-4 py-2 hover:bg-gray-100 w-full text-start group">
+                                    <i class="bi bi-pencil text-green-600 group-hover:text-green-800"></i>
+                                    <span class="ms-2">Edit</span>
+                                </button>
+                            </li>
+                        </ul>
+                        <div class="py-2">
+                            <button hx-post="{% url 'membership:toggle_topup_status' topup.id %}"
+                                    hx-confirm="Are you sure you want to change this topup's status?"
+                                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 group w-full text-start"
+                                    title="Toggle Status">
+                                <i class="bi bi-toggle-on text-orange-600 group-hover:text-orange-800"></i>
+                                <span class="ms-2">Toggle Status</span>
+                            </button>
+                        </div>
+                    </div>
+
+                </td>
+            </tr>
+        {% empty %}
+            <tr>
+                <td colspan="8" class="p-8 text-center text-gray-500">
+                    <div class="flex flex-col items-center">
+                        <i class="bi bi-credit-card text-4xl text-gray-300 mb-4"></i>
+                        <p class="text-lg font-medium mb-2">No topups found</p>
+                        <p class="text-sm">Try adjusting your search criteria or add a new topup.</p>
+                    </div>
+                </td>
+            </tr>
+        {% endfor %}
+
+        {% if topups %}
+            <tr class="hover:bg-gray-50">
+                <td class="py-1.5 px-2 border text-center">
+                    <button
+                            hx-get="{% url 'membership:topups_create' %}"
+                            hx-target="#modal-container"
+                            class="text-gray-400 hover:text-gray-600 cursor-pointer" title="Add New TopUp">
+                        <i class="bi bi-plus"></i>
+                    </button>
+                </td>
+                <td class="py-1.5 px-2 border"></td>
+                <td class="py-1.5 px-2 border"></td>
+                <td class="py-1.5 px-2 border"></td>
+                <td class="py-1.5 px-2 border"></td>
+                <td class="py-1.5 px-2 border"></td>
+                <td class="py-1.5 px-2 border"></td>
+                <td class="py-1.5 px-2 border"></td>
+            </tr>
+        {% endif %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Pagination -->
+{% if page_obj %}
+    <div class="bg-white border-y px-6 py-3 flex items-center justify-between">
+        <div class="flex items-center space-x-4">
+            <div class="text-sm text-gray-500">
+                Showing {{ page_obj.start_index }} to {{ page_obj.end_index }} of {{ page_obj.paginator.count }}
+                TopUps
+            </div>
+        </div>
+
+        <div class="flex items-center space-x-2">
+            {% if page_obj.has_previous %}
+                <button
+                        hx-get="{% url 'membership:topups_list' %}?page={{ page_obj.previous_page_number }}"
+                        hx-target="#topup-list-container"
+                        hx-include="[name='search'], [name='status'], [name='member']"
+                        class="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50">
+                    Previous
+                </button>
+            {% endif %}
+
+            <span class="text-sm text-gray-500">
+            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+        </span>
+
+            {% if page_obj.has_next %}
+                <button
+                        hx-get="{% url 'membership:topups_list' %}?page={{ page_obj.next_page_number }}"
+                        hx-target="#topup-list-container"
+                        hx-include="[name='search'], [name='status'], [name='member']"
+                        class="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50">
+                    Next
+                </button>
+            {% endif %}
+        </div>
+    </div>
+{% endif %}

@@ -1,0 +1,27 @@
+<form id="traditional-login-form"
+      class="login-form"
+      hx-post="{% url 'authentication:traditional_login' %}"
+      hx-target="#traditional-login-form"
+      hx-swap="outerHTML"
+      novalidate
+      hx-indicator="#loading-indicator">
+    {% csrf_token %}
+
+    <div class="space-y-4">
+        {% include 'components/non-field-errors.html' %}
+
+        {% include 'components/field.html' with field=form.username %}
+        {% include 'components/field.html' with field=form.password %}
+
+        <div class="flex items-center justify-between mt-4">
+            <label class="flex items-center">
+                <input type="checkbox" name="remember_me"
+                       class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                <span class="ml-2 text-sm text-gray-600">Remember me</span>
+            </label>
+            <a href="#" class="text-sm text-blue-600 hover:text-blue-500">Forgot password?</a>
+        </div>
+        {% include 'components/submit-button.html' with submit_text="Sign In" loading_text="Signing in..." %}
+
+    </div>
+</form>

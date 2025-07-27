@@ -1,0 +1,466 @@
+{% extends 'layouts/core/base.html' %}
+{% load static %}
+
+{% block title %}
+    Beneficiary: {{ beneficiary.get_full_name | title }}
+{% endblock %}
+
+{% block content %}
+    <!-- Header -->
+    <div class="bg-white border-b border-gray-200 px-6 py-4">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+                <nav class="flex" aria-label="Breadcrumb">
+                    <ol class="inline-flex items-center space-x-1 md:space-x-3">
+                        <li class="inline-flex items-center">
+                            <a href="{% url 'membership:dashboard' %}"
+                               class="inline-flex items-center text-sm font-medium text-gray-700 hover:text-blue-600">
+                                <i class="bi bi-house-door mr-2"></i>
+                                Membership
+                            </a>
+                        </li>
+                        <li>
+                            <div class="flex items-center">
+                                <i class="bi bi-chevron-right text-gray-400"></i>
+                                <a href="{% url 'membership:beneficiaries' %}"
+                                   class="ml-1 text-sm font-medium text-gray-700 hover:text-blue-600 md:ml-2">Beneficiaries</a>
+                            </div>
+                        </li>
+                        <li aria-current="page">
+                            <div class="flex items-center">
+                                <i class="bi bi-chevron-right text-gray-400"></i>
+                                <span class="ml-1 text-sm font-medium text-gray-500 md:ml-2">{{ beneficiary.get_full_name }}</span>
+                            </div>
+                        </li>
+                    </ol>
+                </nav>
+                <h1 class="mt-2 text-lg font-bold text-gray-900">Beneficiary Details</h1>
+            </div>
+            <div class="flex items-center space-x-3">
+                <button type="button"
+                        hx-get="{% url 'membership:beneficiaries_update' beneficiary.id %}"
+                        hx-target="#edit-beneficiary-modal-container"
+                        hx-trigger="click"
+                        onclick="edit_modal.show()"
+                        hx-indicator="#edit-beneficiary-modal-overlay"
+                        class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-sm shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    <i class="bi bi-pencil-square mr-2"></i>
+                    Edit Beneficiary
+                </button>
+                <a href="{% url 'membership:beneficiaries' %}"
+                   class="inline-flex items-center px-4 py-2 border border-transparent rounded-sm shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    <i class="bi bi-arrow-left mr-2"></i>
+                    Back to Beneficiaries
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Beneficiary Overview Card -->
+    <div class="p-6 flex-1 flex-col flex">
+        <div class="bg-white rounded-sm shadow-sm border border-gray-200 mb-6">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-4">
+                        <div class="h-16 w-16 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center overflow-hidden">
+                            {% if beneficiary.photo %}
+                                <img src="{{ beneficiary.photo.url }}" alt="{{ beneficiary.get_full_name }}" 
+                                     class="w-full h-full object-cover">
+                            {% else %}
+                                <span class="text-base font-bold text-white">{{ beneficiary.first_name|first|upper }}</span>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <h2 class="text-lg font-bold text-gray-900">{{ beneficiary.get_full_name }}</h2>
+                            <p class="text-sm text-gray-500">{{ beneficiary.get_type_display }} Beneficiary</p>
+                            <p class="text-xs font-medium text-blue-600">
+                                <a href="{% url 'membership:members_detail' beneficiary.member.membership_number %}" class="hover:text-blue-800">
+                                    Member: {{ beneficiary.member.name }} (#{{ beneficiary.member.membership_number }})
+                                </a>
+                            </p>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <div class="text-right">
+                            <p class="text-sm text-gray-500">Status</p>
+                            {% if beneficiary.status == 'A' %}
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                    <i class="bi bi-check-circle mr-1"></i>
+                                    Active
+                                </span>
+                            {% elif beneficiary.status == 'I' %}
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                    <i class="bi bi-x-circle mr-1"></i>
+                                    Inactive
+                                </span>
+                            {% else %}
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                    <i class="bi bi-pause-circle mr-1"></i>
+                                    Suspended
+                                </span>
+                            {% endif %}
+                        </div>
+                        <div class="text-right">
+                            <p class="text-sm text-gray-500">KYC Status</p>
+                            {% if beneficiary.kyc_verified_at %}
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                    <i class="bi bi-shield-check mr-1"></i>
+                                    Verified
+                                </span>
+                            {% else %}
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                    <i class="bi bi-clock mr-1"></i>
+                                    Pending
+                                </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabs Navigation -->
+        <div class="bg-white flex-1 rounded-sm shadow-sm border border-gray-200">
+            <div class="border-b border-gray-200 max-w-full overflow-x-auto overflow-hidden">
+                <nav class="-mb-px flex space-x-8 px-6" aria-label="Tabs">
+                    <button class="tab-button border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm active"
+                            data-tab="overview">
+                        <i class="bi bi-person-circle mr-2"></i>
+                        Overview
+                    </button>
+                    <button class="tab-button border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm"
+                            data-tab="dependents">
+                        <i class="bi bi-people mr-2"></i>
+                        Dependents
+                        {% if dependents %}
+                            <span class="ml-2 bg-gray-100 text-gray-900 py-0.5 px-2.5 rounded-full text-xs font-medium">{{ dependents.count }}</span>
+                        {% endif %}
+                    </button>
+                    <button class="tab-button border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm"
+                            data-tab="claims">
+                        <i class="bi bi-credit-card mr-2"></i>
+                        Claims
+                        {% if claims %}
+                            <span class="ml-2 bg-gray-100 text-gray-900 py-0.5 px-2.5 rounded-full text-xs font-medium">{{ claims.count }}</span>
+                        {% endif %}
+                    </button>
+                </nav>
+            </div>
+
+            <!-- Tab Content -->
+            <div class="p-4 md:p-6">
+                <!-- Overview Tab -->
+                <div id="overview-tab" class="tab-content">
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <!-- Personal Information -->
+                        <div class="bg-gray-50 rounded-lg p-6">
+                            <h3 class="text-lg font-semibold text-gray-900 mb-4">Personal Information</h3>
+                            <dl class="space-y-3">
+                                <div class="flex justify-between">
+                                    <dt class="text-sm font-medium text-gray-500">Full Name</dt>
+                                    <dd class="text-sm text-gray-900">{{ beneficiary.get_full_name }}</dd>
+                                </div>
+                                <div class="flex justify-between">
+                                    <dt class="text-sm font-medium text-gray-500">National ID</dt>
+                                    <dd class="text-sm text-gray-900">{{ beneficiary.national_id_number|default:"Not provided" }}</dd>
+                                </div>
+                                <div class="flex justify-between">
+                                    <dt class="text-sm font-medium text-gray-500">Email</dt>
+                                    <dd class="text-sm text-gray-900">{{ beneficiary.email|default:"Not provided" }}</dd>
+                                </div>
+                                <div class="flex justify-between">
+                                    <dt class="text-sm font-medium text-gray-500">Phone</dt>
+                                    <dd class="text-sm text-gray-900">{{ beneficiary.mobile|default:"Not provided" }}</dd>
+                                </div>
+                                <div class="flex justify-between">
+                                    <dt class="text-sm font-medium text-gray-500">Date of Birth</dt>
+                                    <dd class="text-sm text-gray-900">{{ beneficiary.date_of_birth|default:"Not provided" }}</dd>
+                                </div>
+                                <div class="flex justify-between">
+                                    <dt class="text-sm font-medium text-gray-500">Gender</dt>
+                                    <dd class="text-sm text-gray-900">{{ beneficiary.get_gender_display|default:"Not specified" }}</dd>
+                                </div>
+                                <div class="flex justify-between">
+                                    <dt class="text-sm font-medium text-gray-500">Address</dt>
+                                    <dd class="text-sm text-gray-900">{{ beneficiary.physical_address|default:"Not provided" }}</dd>
+                                </div>
+                                <div class="flex justify-between">
+                                    <dt class="text-sm font-medium text-gray-500">Relationship</dt>
+                                    <dd class="text-sm text-gray-900">{{ beneficiary.relationship|default:"Not specified" }}</dd>
+                                </div>
+                            </dl>
+                        </div>
+
+                        <!-- Emergency Contact Information -->
+                        <div class="bg-gray-50 rounded-lg p-6">
+                            <h3 class="text-lg font-semibold text-gray-900 mb-4">Emergency Contact</h3>
+                            <dl class="space-y-3">
+                                <div class="flex justify-between">
+                                    <dt class="text-sm font-medium text-gray-500">Contact Name</dt>
+                                    <dd class="text-sm text-gray-900">{{ beneficiary.emergency_contact_name|default:"Not provided" }}</dd>
+                                </div>
+                                <div class="flex justify-between">
+                                    <dt class="text-sm font-medium text-gray-500">Contact Phone</dt>
+                                    <dd class="text-sm text-gray-900">{{ beneficiary.emergency_contact_phone|default:"Not provided" }}</dd>
+                                </div>
+                                <div class="flex justify-between">
+                                    <dt class="text-sm font-medium text-gray-500">Relationship</dt>
+                                    <dd class="text-sm text-gray-900">{{ beneficiary.emergency_contact_relationship|default:"Not provided" }}</dd>
+                                </div>
+                                <div class="flex justify-between">
+                                    <dt class="text-sm font-medium text-gray-500">Contact Address</dt>
+                                    <dd class="text-sm text-gray-900">{{ beneficiary.emergency_contact_address|default:"Not provided" }}</dd>
+                                </div>
+                            </dl>
+                        </div>
+
+                        <!-- Membership Information -->
+                        <div class="bg-gray-50 rounded-lg p-6">
+                            <h3 class="text-lg font-semibold text-gray-900 mb-4">Membership Information</h3>
+                            <dl class="space-y-3">
+                                <div class="flex justify-between">
+                                    <dt class="text-sm font-medium text-gray-500">Beneficiary Type</dt>
+                                    <dd class="text-sm text-gray-900">{{ beneficiary.get_type_display }}</dd>
+                                </div>
+                                <div class="flex justify-between">
+                                    <dt class="text-sm font-medium text-gray-500">Associated Member</dt>
+                                    <dd class="text-sm text-gray-900">
+                                        <a href="{% url 'membership:members_detail' beneficiary.member.membership_number %}" class="text-blue-600 hover:text-blue-800">
+                                            {{ beneficiary.member.name }}
+                                        </a>
+                                    </dd>
+                                </div>
+                                <div class="flex justify-between">
+                                    <dt class="text-sm font-medium text-gray-500">Membership Number</dt>
+                                    <dd class="text-sm font-mono text-gray-900">{{ beneficiary.membership_number }}/{{ beneficiary.dependent_code }}</dd>
+                                </div>
+                                <div class="flex justify-between">
+                                    <dt class="text-sm font-medium text-gray-500">Package</dt>
+                                    <dd class="text-sm text-gray-900">{{ beneficiary.package|default:"Not assigned" }}</dd>
+                                </div>
+                                <div class="flex justify-between">
+                                    <dt class="text-sm font-medium text-gray-500">Annual Limit</dt>
+                                    <dd class="text-sm text-gray-900">{{ beneficiary.annual_limit|default:"Not set" }}</dd>
+                                </div>
+                                <div class="flex justify-between">
+                                    <dt class="text-sm font-medium text-gray-500">Benefit Start Date</dt>
+                                    <dd class="text-sm text-gray-900">{{ beneficiary.benefit_start_date|date:"M d, Y"|default:"Not set" }}</dd>
+                                </div>
+                                <div class="flex justify-between">
+                                    <dt class="text-sm font-medium text-gray-500">Join Date</dt>
+                                    <dd class="text-sm text-gray-900">{{ beneficiary.date_joined|date:"M d, Y" }}</dd>
+                                </div>
+                                <div class="flex justify-between">
+                                    <dt class="text-sm font-medium text-gray-500">Added By</dt>
+                                    {% if beneficiary.created_by %}
+                                        <dd class="text-sm text-gray-900">{{ beneficiary.created_by.get_full_name }}</dd>
+                                    {% else %}
+                                        <dd class="text-sm text-gray-900">System</dd>
+                                    {% endif %}
+                                </div>
+                            </dl>
+                        </div>
+                    </div>
+
+                    <!-- Quick Stats -->
+                    <div class="mt-6 grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div class="bg-blue-50 rounded-lg p-4">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0">
+                                    <i class="bi bi-people text-blue-600 text-xl"></i>
+                                </div>
+                                <div class="ml-3">
+                                    <p class="text-sm font-medium text-blue-600">Dependents</p>
+                                    <p class="text-lg font-semibold text-blue-900">{{ dependents.count }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-green-50 rounded-lg p-4">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0">
+                                    <i class="bi bi-credit-card text-green-600 text-xl"></i>
+                                </div>
+                                <div class="ml-3">
+                                    <p class="text-sm font-medium text-green-600">Claims Count</p>
+                                    <p class="text-lg font-semibold text-green-900">{{ beneficiary.claims.count }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-purple-50 rounded-lg p-4">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0">
+                                    <i class="bi bi-currency-dollar text-purple-600 text-xl"></i>
+                                </div>
+                                <div class="ml-3">
+                                    <p class="text-sm font-medium text-purple-600">Annual Limit</p>
+                                    <p class="text-lg font-semibold text-purple-900">{{ beneficiary.annual_limit|default:"0.00" }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-orange-50 rounded-lg p-4">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0">
+                                    <i class="bi bi-shield-check text-orange-600 text-xl"></i>
+                                </div>
+                                <div class="ml-3">
+                                    <p class="text-sm font-medium text-orange-600">Status</p>
+                                    <p class="text-lg font-semibold text-orange-900">{{ beneficiary.get_status_display }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dependents Tab -->
+                <div id="dependents-tab" class="tab-content hidden">
+                    <div class="space-y-4">
+                        {% if dependents %}
+                            {% for dependent in dependents %}
+                                <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <h4 class="text-lg font-semibold text-gray-900">{{ dependent.get_full_name }}</h4>
+                                            <p class="text-sm text-gray-500">{{ dependent.get_type_display }}</p>
+                                            <p class="text-sm text-gray-500">
+                                                Phone: {{ dependent.mobile|default:"Not provided" }}</p>
+                                            <p class="text-sm text-gray-500">
+                                                Relationship: {{ dependent.relationship|default:"Not specified" }}</p>
+                                        </div>
+                                        <div class="text-right">
+                                            {% if dependent.status == 'A' %}
+                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                    Active
+                                                </span>
+                                            {% elif dependent.status == 'S' %}
+                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                                    Suspended
+                                                </span>
+                                            {% else %}
+                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                                    Terminated
+                                                </span>
+                                            {% endif %}
+                                            <p class="text-xs text-gray-500 mt-1">
+                                                Added {{ dependent.date_joined|date:"M d, Y" }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="text-center py-8">
+                                <i class="bi bi-people text-gray-400 text-4xl mb-4"></i>
+                                <p class="text-gray-500">No dependents found for this beneficiary.</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Claims Tab -->
+                <div id="claims-tab" class="tab-content hidden">
+                    <div class="space-y-4">
+                        {% if claims %}
+                            {% for claim in claims %}
+                                <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <h4 class="text-lg font-semibold text-gray-900">{{ claim.claim_number }}</h4>
+                                            <p class="text-sm text-gray-500">{{ claim.service_provider.name|default:"Unknown Provider" }}</p>
+                                            <p class="text-sm text-gray-500">
+                                                Amount: ${{ claim.amount|floatformat:2 }}</p>
+                                            <p class="text-sm text-gray-500">
+                                                Date: {{ claim.date_of_service|date:"M d, Y" }}</p>
+                                        </div>
+                                        <div class="text-right">
+                                            {% if claim.status == 'A' %}
+                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                    Approved
+                                                </span>
+                                            {% elif claim.status == 'P' %}
+                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                                    Pending
+                                                </span>
+                                            {% elif claim.status == 'R' %}
+                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                                    Rejected
+                                                </span>
+                                            {% else %}
+                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                                    {{ claim.get_status_display }}
+                                                </span>
+                                            {% endif %}
+                                            <p class="text-xs text-gray-500 mt-1">
+                                                Submitted {{ claim.date_created|date:"M d, Y" }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="text-center py-8">
+                                <i class="bi bi-credit-card text-gray-400 text-4xl mb-4"></i>
+                                <p class="text-gray-500">No claims found for this beneficiary.</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block sidebar %}
+    {% include 'layouts/core/sidebar/membership.html' %}
+{% endblock %}
+
+{% block modals %}
+    {% include "pages/core/membership/partials/beneficiary-list/edit-modal.html" with modal_id="edit-beneficiary-modal" %}
+{% endblock %}
+
+
+{% block extra_js %}
+    <script>
+        const $editBeneficiaryModalElement = document.getElementById('edit-beneficiary-modal');
+        const editModalInstanceOptions = {id: 'edit-beneficiary-modal', override: true};
+        const edit_modal = new Modal($editBeneficiaryModalElement, modalOptions, editModalInstanceOptions);
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Tab functionality
+            const tabButtons = document.querySelectorAll('.tab-button');
+            const tabContents = document.querySelectorAll('.tab-content');
+
+            tabButtons.forEach(button => {
+                button.addEventListener('click', function () {
+                    const targetTab = this.getAttribute('data-tab');
+
+                    // Remove active class from all buttons and contents
+                    tabButtons.forEach(btn => {
+                        btn.classList.remove('active', 'border-blue-500', 'text-blue-600');
+                        btn.classList.add('border-transparent', 'text-gray-500');
+                    });
+
+                    tabContents.forEach(content => {
+                        content.classList.add('hidden');
+                    });
+
+                    // Add active class to clicked button
+                    this.classList.add('active', 'border-blue-500', 'text-blue-600');
+                    this.classList.remove('border-transparent', 'text-gray-500');
+
+                    // Show target content
+                    const targetContent = document.getElementById(targetTab + '-tab');
+                    if (targetContent) {
+                        targetContent.classList.remove('hidden');
+                    }
+                });
+            });
+
+            // Set initial active state
+            const firstButton = tabButtons[0];
+            if (firstButton) {
+                firstButton.classList.add('border-blue-500', 'text-blue-600');
+                firstButton.classList.remove('border-transparent', 'text-gray-500');
+            }
+        });
+    </script>
+
+{% endblock %}

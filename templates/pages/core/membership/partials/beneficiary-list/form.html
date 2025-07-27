@@ -1,0 +1,45 @@
+<form
+        {% if beneficiary %}
+            hx-post="{% url "membership:beneficiaries_update" beneficiary.id %}"
+        {% else %}
+            hx-post="{% url 'membership:beneficiaries_create' %}"
+            hx-target="#new-beneficiary-modal-container"
+        {% endif %}
+            hx-swap="innerHTML"
+            novalidate=""
+            enctype="multipart/form-data"
+>
+    {% csrf_token %}
+
+    <!-- Modal body with scrollable content -->
+    <div class="p-2 md:p-3 space-y-4 max-h-[60vh] overflow-y-auto">
+        {% include "components/non-field-errors.html" %}
+
+        <div class="grid grid-cols-2 gap-4 md:gap-6">
+            {% include "components/field.html" with field=form.first_name field_widget_class="col-span-1" %}
+            {% include "components/field.html" with field=form.last_name field_widget_class="col-span-1" %}
+            {% include "components/field.html" with field=form.middle_name field_widget_class="col-span-2" %}
+            {% include "components/field.html" with field=form.photo field_widget_class="col-span-2" %}
+            {% include "components/field.html" with field=form.national_id_number field_widget_class="col-span-1" %}
+            {% include "components/field.html" with field=form.date_of_birth field_widget_class="col-span-1" %}
+            {% include "components/field.html" with field=form.gender field_widget_class="col-span-1" %}
+            {% include "components/field.html" with field=form.type field_widget_class="col-span-1" %}
+            {% include "components/field.html" with field=form.member field_widget_class="col-span-1" %}
+            {% include "components/field.html" with field=form.relationship field_widget_class="col-span-1" %}
+            {% include "components/field.html" with field=form.email field_widget_class="col-span-2" %}
+            {% include "components/field.html" with field=form.mobile field_widget_class="col-span-1" %}
+            {% include "components/field.html" with field=form.physical_address field_widget_class="col-span-2" %}
+            {% include "components/field.html" with field=form.benefit_start_date field_widget_class="col-span-1" %}
+            {% include "components/field.html" with field=form.status field_widget_class="col-span-1" %}
+            {% include "components/field.html" with field=form.principal field_widget_class="col-span-1" %}
+            {% include "components/field.html" with field=form.other_identity_number field_widget_class="col-span-1" %}
+        </div>
+    </div>
+
+    <div class="flex items-center p-2 md:p-3 border-t border-gray-200 justify-end">
+        <div class="w-40">
+            {% include "components/submit-button.html" %}
+
+        </div>
+    </div>
+</form>

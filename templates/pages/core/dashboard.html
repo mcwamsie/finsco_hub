@@ -1,0 +1,221 @@
+{% extends 'layouts/core/base.html' %}
+{% load static %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="flex-1">
+            <div class="bg-gray-50 px-6 py-3 border-b flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <div class="flex items-center space-x-1">
+                        <span class="font-medium">Table 1</span>
+                        <i class="bi bi-chevron-down text-sm text-gray-500"></i>
+                    </div>
+                    <i class="bi bi-chevron-down text-sm text-gray-500"></i>
+                    <button class="flex items-center space-x-2 text-sm text-gray-600 hover:text-gray-800">
+                        <i class="bi bi-plus"></i>
+                        <span>Add or import</span>
+                    </button>
+                </div>
+                <div class="flex items-center space-x-6 text-sm">
+                    <span>Extensions</span>
+                    <span>Tools</span>
+                    <i class="bi bi-chevron-down text-gray-500"></i>
+                </div>
+            </div>
+
+            <!-- Toolbar -->
+            <div class="bg-white px-6 py-3 border-b flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <button class="flex items-center space-x-2 text-sm text-gray-600 hover:text-gray-800">
+                        <i class="bi bi-grid-3x3-gap"></i>
+                        <span>Grid view</span>
+                        <i class="bi bi-chevron-down"></i>
+                    </button>
+                    <button class="flex items-center space-x-2 text-sm text-gray-600 hover:text-gray-800">
+                        <i class="bi bi-eye-slash"></i>
+                        <span>Hide fields</span>
+                    </button>
+                    <button class="flex items-center space-x-2 text-sm text-gray-600 hover:text-gray-800">
+                        <i class="bi bi-funnel"></i>
+                        <span>Filter</span>
+                    </button>
+                    <button class="flex items-center space-x-2 text-sm text-gray-600 hover:text-gray-800">
+                        <i class="bi bi-collection"></i>
+                        <span>Group</span>
+                    </button>
+                    <button class="flex items-center space-x-2 text-sm text-gray-600 hover:text-gray-800">
+                        <i class="bi bi-arrow-up-down"></i>
+                        <span>Sort</span>
+                    </button>
+                    <button class="flex items-center space-x-2 text-sm text-gray-600 hover:text-gray-800">
+                        <i class="bi bi-palette"></i>
+                        <span>Color</span>
+                    </button>
+                    <button class="text-gray-400 hover:text-gray-600">
+                        <i class="bi bi-three-dots-vertical"></i>
+                    </button>
+                </div>
+                <button class="flex items-center space-x-2 text-sm text-gray-600 hover:text-gray-800">
+                    <i class="bi bi-share"></i>
+                    <span>Share and sync</span>
+                </button>
+            </div>
+
+            <!-- Table -->
+            <div class="overflow-auto scrollbar-thin">
+                <table class="w-full">
+                    <thead class="bg-gray-50 border-b">
+                    <tr>
+                        <th class="w-12 p-3 text-left border-r">#</th>
+                        <th class="min-w-48 p-3 text-left border-r">
+                            <div class="flex items-center space-x-2">
+                                <i class="bi bi-person text-gray-400"></i>
+                                <span class="text-sm font-medium">user</span>
+                                <i class="bi bi-chevron-down text-gray-400"></i>
+                            </div>
+                        </th>
+                        <th class="min-w-48 p-3 text-left border-r">
+                            <div class="flex items-center space-x-2">
+                                <i class="bi bi-circle text-gray-400"></i>
+                                <span class="text-sm font-medium">Feedback Type</span>
+                                <i class="bi bi-chevron-down text-gray-400"></i>
+                            </div>
+                        </th>
+                        <th class="min-w-64 p-3 text-left border-r">
+                            <div class="flex items-center space-x-2">
+                                <i class="bi bi-person text-gray-400"></i>
+                                <span class="text-sm font-medium">Description</span>
+                                <i class="bi bi-chevron-down text-gray-400"></i>
+                            </div>
+                        </th>
+                        <th class="min-w-48 p-3 text-left">
+                            <div class="flex items-center space-x-2">
+                                <i class="bi bi-circle text-gray-400"></i>
+                                <span class="text-sm font-medium">Channel</span>
+                                <i class="bi bi-chevron-down text-gray-400"></i>
+                            </div>
+                        </th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr class="border-b hover:bg-gray-50">
+                        <td class="p-3 text-sm text-gray-500 border-r">1</td>
+                        <td class="p-3 border-r"></td>
+                        <td class="p-3 border-r"></td>
+                        <td class="p-3 border-r"></td>
+                        <td class="p-3"></td>
+                    </tr>
+                    <tr class="border-b hover:bg-gray-50">
+                        <td class="p-3 text-sm text-gray-500 border-r">2</td>
+                        <td class="p-3 border-r"></td>
+                        <td class="p-3 border-r"></td>
+                        <td class="p-3 border-r"></td>
+                        <td class="p-3"></td>
+                    </tr>
+                    <tr class="border-b hover:bg-gray-50">
+                        <td class="p-3 text-sm text-gray-500 border-r">3</td>
+                        <td class="p-3 border-r"></td>
+                        <td class="p-3 border-r"></td>
+                        <td class="p-3 border-r"></td>
+                        <td class="p-3"></td>
+                    </tr>
+                    <tr class="border-b hover:bg-gray-50">
+                        <td class="p-3 text-sm text-gray-500 border-r">4</td>
+                        <td class="p-3 border-r"></td>
+                        <td class="p-3 border-r"></td>
+                        <td class="p-3 border-r"></td>
+                        <td class="p-3"></td>
+                    </tr>
+                    <tr class="border-b hover:bg-gray-50">
+                        <td class="p-3 text-sm text-gray-500 border-r">5</td>
+                        <td class="p-3 border-r"></td>
+                        <td class="p-3 border-r"></td>
+                        <td class="p-3 border-r"></td>
+                        <td class="p-3"></td>
+                    </tr>
+                    <tr class="border-b hover:bg-gray-50">
+                        <td class="p-3 text-sm text-gray-500 border-r">6</td>
+                        <td class="p-3 border-r"></td>
+                        <td class="p-3 border-r"></td>
+                        <td class="p-3 border-r"></td>
+                        <td class="p-3"></td>
+                    </tr>
+                    <tr class="border-b hover:bg-gray-50">
+                        <td class="p-3 text-sm text-gray-500 border-r">7</td>
+                        <td class="p-3 border-r"></td>
+                        <td class="p-3 border-r"></td>
+                        <td class="p-3 border-r"></td>
+                        <td class="p-3"></td>
+                    </tr>
+                    <tr class="border-b hover:bg-gray-50">
+                        <td class="p-3 text-sm text-gray-500 border-r">8</td>
+                        <td class="p-3 border-r"></td>
+                        <td class="p-3 border-r"></td>
+                        <td class="p-3 border-r"></td>
+                        <td class="p-3"></td>
+                    </tr>
+                    <tr class="border-b hover:bg-gray-50">
+                        <td class="p-3 text-sm text-gray-500 border-r">9</td>
+                        <td class="p-3 border-r"></td>
+                        <td class="p-3 border-r"></td>
+                        <td class="p-3 border-r"></td>
+                        <td class="p-3"></td>
+                    </tr>
+                    <tr class="border-b hover:bg-gray-50">
+                        <td class="p-3 text-sm text-gray-500 border-r">10</td>
+                        <td class="p-3 border-r"></td>
+                        <td class="p-3 border-r"></td>
+                        <td class="p-3 border-r"></td>
+                        <td class="p-3"></td>
+                    </tr>
+                    <tr class="hover:bg-gray-50">
+                        <td class="p-3 text-center border-r">
+                            <i class="bi bi-plus text-gray-400 hover:text-gray-600 cursor-pointer"></i>
+                        </td>
+                        <td class="p-3 border-r"></td>
+                        <td class="p-3 border-r"></td>
+                        <td class="p-3 border-r"></td>
+                        <td class="p-3"></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Footer -->
+            <div class="bg-white border-t px-6 py-3 flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <div class="text-sm text-gray-500">11 records</div>
+                    <div class="flex items-center space-x-2">
+                        <span class="text-sm text-gray-500">Filled</span>
+                        <div class="flex items-center space-x-1">
+                            <span class="text-sm">1</span>
+                            <i class="bi bi-chevron-down text-sm text-gray-400"></i>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <span class="text-sm text-gray-500">Filled</span>
+                        <div class="flex items-center space-x-1">
+                            <span class="text-sm">1</span>
+                            <i class="bi bi-chevron-down text-sm text-gray-400"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom Notification -->
+            <div class="bg-blue-50 border-t border-blue-200 px-6 py-3">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <i class="bi bi-grid-3x3-gap text-blue-600"></i>
+                        <span class="text-sm text-blue-800">It looks like you are managing data in Airtable. Would you like assistance with organizing this information?</span>
+                    </div>
+                    <i class="bi bi-x text-blue-600 hover:text-blue-800 cursor-pointer"></i>
+                </div>
+            </div>
+        </div>
+{% endblock %}
+
+{% block sidebar %}
+	{% include 'layouts/core/sidebar/dashboard.html' %}
+{% endblock %}

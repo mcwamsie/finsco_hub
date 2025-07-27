@@ -1,0 +1,330 @@
+<!-- Loading States Component - Include this in templates that need loading functionality -->
+
+<!-- Page Loading Overlay -->
+<div id="page-loading" class="hidden fixed inset-0 bg-white bg-opacity-90 z-50 flex items-center justify-center">
+    <div class="text-center">
+        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-airtable-blue mx-auto mb-4"></div>
+        <div class="text-gray-700 font-medium">Loading...</div>
+        <div class="text-sm text-gray-500 mt-1" id="loading-message">Please wait while we process your request</div>
+    </div>
+</div>
+
+<!-- Form Submission Overlay -->
+<div id="form-loading" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+    <div class="bg-white rounded-lg p-6 max-w-sm mx-4">
+        <div class="flex items-center gap-3">
+            <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-airtable-blue"></div>
+            <span class="text-gray-700 font-medium" id="form-loading-text">Processing...</span>
+        </div>
+        <div class="text-sm text-gray-500 mt-2" id="form-loading-subtext">Please wait while we save your changes.</div>
+    </div>
+</div>
+
+<!-- Inline Button Loading Template -->
+<template id="button-loading-template">
+    <div class="flex items-center gap-2">
+        <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-current"></div>
+        <span class="loading-text">Loading...</span>
+    </div>
+</template>
+
+<script>
+    // Global loading state management
+    class LoadingManager {
+        constructor() {
+            this.isLoading = false;
+            this.activeOperations = new Set();
+        }
+
+        // Show page-level loading
+        showPageLoading(message = 'Loading...') {
+            this.isLoading = true;
+            const overlay = document.getElementById('page-loading');
+            const messageEl = document.getElementById('loading-message');
+            if (overlay && messageEl) {
+                messageEl.textContent = message;
+                overlay.classList.remove('hidden');
+                this.disablePageInteractions();
+            }
+        }
+
+        // Hide page-level loading
+        hidePageLoading() {
+            this.isLoading = false;
+            const overlay = document.getElementById('page-loading');
+            if (overlay) {
+                overlay.classList.add('hidden');
+                this.enablePageInteractions();
+            }
+        }
+
+        // Show form submission loading
+        showFormLoading(title = 'Processing...', subtitle = 'Please wait while we save your changes.') {
+            this.isLoading = true;
+            const overlay = document.getElementById('form-loading');
+            const titleEl = document.getElementById('form-loading-text');
+            const subtitleEl = document.getElementById('form-loading-subtext');
+
+            if (overlay && titleEl && subtitleEl) {
+                titleEl.textContent = title;
+                subtitleEl.textContent = subtitle;
+                overlay.classList.remove('hidden');
+                this.disablePageInteractions();
+            }
+        }
+
+        // Hide form submission loading
+        hideFormLoading() {
+            this.isLoading = false;
+            const overlay = document.getElementById('form-loading');
+            if (overlay) {
+                overlay.classList.add('hidden');
+                this.enablePageInteractions();
+            }
+        }
+
+        // Show button loading state
+        showButtonLoading(button, text = 'Loading...') {
+            if (!button || button.hasAttribute('data-loading')) return;
+
+            const originalContent = button.innerHTML;
+            button.setAttribute('data-original-content', originalContent);
+            button.setAttribute('data-loading', 'true');
+            button.disabled = true;
+
+            const template = document.getElementById('button-loading-template');
+            if (template) {
+                const clone = template.content.cloneNode(true);
+                const loadingText = clone.querySelector('.loading-text');
+                if (loadingText) loadingText.textContent = text;
+
+                button.innerHTML = '';
+                button.appendChild(clone);
+            } else {
+                button.innerHTML = `
+                    <div class="flex items-center gap-2">
+                        <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-current"></div>
+                        <span>${text}</span>
+                    </div>
+                `;
+            }
+
+            button.classList.add('loading-state');
+        }
+
+        // Hide button loading state
+        hideButtonLoading(button) {
+            if (!button || !button.hasAttribute('data-loading')) return;
+
+            const originalContent = button.getAttribute('data-original-content');
+            if (originalContent) {
+                button.innerHTML = originalContent;
+                button.removeAttribute('data-original-content');
+            }
+
+            button.removeAttribute('data-loading');
+            button.disabled = false;
+            button.classList.remove('loading-state');
+        }
+
+        // Disable all page interactions
+        disablePageInteractions() {
+            // Disable form fields
+            const formFields = document.querySelectorAll('input, select, textarea, button');
+            formFields.forEach(field => {
+                if (!field.hasAttribute('data-original-disabled')) {
+                    field.setAttribute('data-original-disabled', field.disabled);
+                }
+                field.disabled = true;
+                field.classList.add('disabled-during-loading');
+            });
+
+            // Disable links
+            const links = document.querySelectorAll('a');
+            links.forEach(link => {
+                if (!link.hasAttribute('data-original-pointer-events')) {
+                    link.setAttribute('data-original-pointer-events',
+                        getComputedStyle(link).pointerEvents);
+                }
+                link.style.pointerEvents = 'none';
+                link.classList.add('opacity-50', 'cursor-not-allowed', 'disabled-during-loading');
+            });
+        }
+
+        // Re-enable page interactions
+        enablePageInteractions() {
+            // Re-enable form fields
+            const formFields = document.querySelectorAll('.disabled-during-loading');
+            formFields.forEach(field => {
+                const originalDisabled = field.getAttribute('data-original-disabled');
+                field.disabled = originalDisabled === 'true';
+                field.removeAttribute('data-original-disabled');
+                field.classList.remove('disabled-during-loading');
+            });
+
+            // Re-enable links
+            const links = document.querySelectorAll('a.disabled-during-loading');
+            links.forEach(link => {
+                const originalPointerEvents = link.getAttribute('data-original-pointer-events');
+                link.style.pointerEvents = originalPointerEvents || 'auto';
+                link.removeAttribute('data-original-pointer-events');
+                link.classList.remove('opacity-50', 'cursor-not-allowed', 'disabled-during-loading');
+            });
+        }
+
+        // Track operation
+        startOperation(operationId) {
+            this.activeOperations.add(operationId);
+        }
+
+        // Finish operation
+        finishOperation(operationId) {
+            this.activeOperations.delete(operationId);
+        }
+
+        // Check if any operations are active
+        hasActiveOperations() {
+            return this.activeOperations.size > 0;
+        }
+    }
+
+    // Global instance
+    window.loadingManager = new LoadingManager();
+
+    // Auto-setup for forms
+    document.addEventListener('DOMContentLoaded', function() {
+        // Setup form submission handlers
+        const forms = document.querySelectorAll('form');
+        forms.forEach(form => {
+            form.addEventListener('submit', function(e) {
+                // Skip if already processing
+                if (window.loadingManager.isLoading) {
+                    e.preventDefault();
+                    return;
+                }
+
+                // Determine loading message based on form action
+                let title = 'Processing...';
+                let subtitle = 'Please wait while we process your request.';
+
+                if (this.action.includes('login')) {
+                    title = 'Signing you in...';
+                    subtitle = 'Please wait while we authenticate your account.';
+                } else if (this.action.includes('register')) {
+                    title = 'Creating your account...';
+                    subtitle = 'Please wait while we set up your account.';
+                } else if (this.action.includes('delete')) {
+                    title = 'Deleting...';
+                    subtitle = 'Please wait while we remove this item.';
+                } else if (this.action.includes('create')) {
+                    title = 'Creating...';
+                    subtitle = 'Please wait while we save your new record.';
+                } else if (this.action.includes('edit') || this.action.includes('update')) {
+                    title = 'Saving changes...';
+                    subtitle = 'Please wait while we update your record.';
+                }
+
+                window.loadingManager.showFormLoading(title, subtitle);
+            });
+        });
+
+        // Setup link navigation handlers
+        const internalLinks = document.querySelectorAll('a:not([target="_blank"]):not([href^="mailto:"]):not([href^="tel:"])');
+        internalLinks.forEach(link => {
+            if (link.href && link.href.startsWith(window.location.origin)) {
+                link.addEventListener('click', function(e) {
+                    // Skip if already loading or if it's a hash link
+                    if (window.loadingManager.isLoading || this.getAttribute('href').startsWith('#')) {
+                        return;
+                    }
+
+                    window.loadingManager.showPageLoading('Loading page...');
+                });
+            }
+        });
+
+        // Setup button handlers for AJAX operations
+        const actionButtons = document.querySelectorAll('[data-action]');
+        actionButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const action = this.getAttribute('data-action');
+                const loadingText = this.getAttribute('data-loading-text') || 'Processing...';
+                window.loadingManager.showButtonLoading(this, loadingText);
+            });
+        });
+    });
+
+    // Handle page unload to reset states
+    window.addEventListener('beforeunload', function() {
+        window.loadingManager.hidePageLoading();
+        window.loadingManager.hideFormLoading();
+    });
+
+    // Handle back/forward navigation
+    window.addEventListener('pageshow', function(event) {
+        if (event.persisted) {
+            // Page was loaded from cache, reset loading states
+            window.loadingManager.hidePageLoading();
+            window.loadingManager.hideFormLoading();
+            window.loadingManager.isLoading = false;
+            window.loadingManager.activeOperations.clear();
+        }
+    });
+
+    // Utility functions for manual loading control
+    window.showLoading = function(message) {
+        window.loadingManager.showPageLoading(message);
+    };
+
+    window.hideLoading = function() {
+        window.loadingManager.hidePageLoading();
+    };
+
+    window.showFormLoading = function(title, subtitle) {
+        window.loadingManager.showFormLoading(title, subtitle);
+    };
+
+    window.hideFormLoading = function() {
+        window.loadingManager.hideFormLoading();
+    };
+
+    window.showButtonLoading = function(button, text) {
+        window.loadingManager.showButtonLoading(button, text);
+    };
+
+    window.hideButtonLoading = function(button) {
+        window.loadingManager.hideButtonLoading(button);
+    };
+</script>
+
+<!-- Usage Examples:
+
+1. In base.html, include this component:
+{#{% include 'components/loading_states.html' %}#}
+
+2. Manual loading control:
+<script>
+// Show page loading
+showLoading('Loading data...');
+
+// Show form loading
+showFormLoading('Saving...', 'Please wait while we save your changes.');
+
+// Show button loading
+const button = document.getElementById('save-btn');
+showButtonLoading(button, 'Saving...');
+
+// Hide loading states
+hideLoading();
+hideFormLoading();
+hideButtonLoading(button);
+</script>
+
+3. Button with data attributes:
+<button data-action="save" data-loading-text="Saving...">Save Record</button>
+
+4. Form with custom loading:
+<form onsubmit="showFormLoading('Creating record...', 'Please wait...')">
+</form>
+
+-->

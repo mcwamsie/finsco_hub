@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Verification Code - Fisco Hub</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        .email-container {
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #2563eb 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .logo {
+            width: 60px;
+            height: 60px;
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .content {
+            padding: 40px 30px;
+            text-align: center;
+        }
+        .verification-code {
+            background-color: #f8f9fa;
+            border: 2px dashed #4f46e5;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 30px 0;
+            font-size: 32px;
+            font-weight: bold;
+            letter-spacing: 8px;
+            color: #4f46e5;
+            font-family: 'Courier New', monospace;
+        }
+        .button {
+            display: inline-block;
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            color: white;
+            padding: 12px 30px;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            margin: 20px 0;
+            transition: transform 0.2s;
+        }
+        .button:hover {
+            transform: translateY(-2px);
+        }
+        .footer {
+            background-color: #f8f9fa;
+            padding: 20px 30px;
+            text-align: center;
+            font-size: 14px;
+            color: #6b7280;
+            border-top: 1px solid #e5e7eb;
+        }
+        .security-note {
+            background-color: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .security-note strong {
+            color: #92400e;
+        }
+        @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+            .content {
+                padding: 30px 20px;
+            }
+            .verification-code {
+                font-size: 24px;
+                letter-spacing: 4px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo">
+                FH
+            </div>
+            <h1 style="margin: 0; font-size: 28px; font-weight: 700;">Fisco Hub</h1>
+            <p style="margin: 10px 0 0; opacity: 0.9; font-size: 16px;">Your verification code is ready</p>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+            <h2 style="color: #1f2937; margin-bottom: 20px;">Welcome back!</h2>
+            
+            <p style="font-size: 16px; color: #4b5563; margin-bottom: 30px;">
+                We received a request to sign in to your Fisco Hub account. Use the verification code below to complete your login:
+            </p>
+
+            <div class="verification-code">
+                {{ verification_code }}
+            </div>
+
+            <p style="font-size: 14px; color: #6b7280; margin-bottom: 30px;">
+                This code will expire in <strong>10 minutes</strong> for your security.
+            </p>
+
+            <div class="security-note">
+                <strong>Security Notice:</strong> If you didn't request this code, please ignore this email. Never share your verification code with anyone.
+            </div>
+
+            <p style="font-size: 16px; color: #4b5563; margin-top: 30px;">
+                Need help? Contact our support team at 
+                <a href="mailto:support@fiscohub.com" style="color: #4f46e5; text-decoration: none;">support@fiscohub.com</a>
+            </p>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p style="margin: 0 0 10px;">
+                <strong>Fisco Hub</strong> - Your trusted business management platform
+            </p>
+            <p style="margin: 0; font-size: 12px;">
+                This email was sent to {{ email }}. If you have any questions, please contact our support team.
+            </p>
+            <p style="margin: 10px 0 0; font-size: 12px;">
+                © {{ current_year }} Fisco Hub. All rights reserved.
+            </p>
+        </div>
+    </div>
+</body>
+</html>

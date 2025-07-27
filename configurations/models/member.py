@@ -1,9 +1,23 @@
 from django.db import models
+from django.utils import timezone
+from django.core.exceptions import ValidationError
 
 from configurations.models.base_model import BaseModel
 from configurations.models.currency import Currency
 from configurations.models.package import Package
 
+
+class MemberManager(models.Manager):
+    def communities(self):
+        return self.filter(type__in=["CO", "CM"])
+    
+    def valid_parents(self):
+        """Return members that can be parents (Community, Family, Corporate)"""
+        return self.filter(type__in=["CM", "FM", "CO"])
+    
+    def child_members(self):
+        """Return members that can be children (Individual, HealthSave)"""
+        return self.filter(type__in=["IN", "HS"])
 
 class Member(BaseModel):
     name = models.CharField(max_length=255, unique=True, db_index=True, verbose_name="Member Name")
@@ -14,12 +28,12 @@ class Member(BaseModel):
         ("HS", "HealthSave"),  # 8-digit: 30xxxxxx
         ("IN", "Individual"),  # 8-digit: 40xxxxxx
         ("FM", "Family"),  # 8-digit: 50xxxxxx
-        ("MF", "Microfinance"),  # 8-digit: 60xxxxxx
+        # ("MF", "Microfinance"),  # 8-digit: 60xxxxxx
     ]
     type = models.CharField(max_length=2, choices=MEMBER_TYPES, verbose_name="Member Type")
 
     alias = models.CharField(max_length=255, blank=True, null=True, db_index=True, verbose_name="Alias")
-    membership_number = models.CharField(max_length=8, unique=True, editable=False, db_index=True,
+    membership_number = models.CharField(max_length=10, unique=True, editable=False, db_index=True,
                                          verbose_name="Membership Number")
     logo = models.ImageField(max_length=255, upload_to="member/logo", null=True, blank=True, verbose_name="Logo")
     currency = models.ForeignKey(Currency, on_delete=models.CASCADE, verbose_name="Main Currency")
@@ -35,7 +49,7 @@ class Member(BaseModel):
 
     # Business Rules
     signing_rule = models.CharField(max_length=1, choices=[("S", "Single"), ("D", "Dual"), ("A", "Any")], verbose_name="Signing Rule")
-    status = models.CharField(max_length=1, choices=[("A", "Active"), ("I", "Inactive"), ("S", "Suspended")], verbose_name="Status")
+    status = models.CharField(max_length=1, default="A", choices=[("A", "Active"), ("I", "Inactive"), ("S", "Suspended")], verbose_name="Status")
     sponsor = models.CharField(max_length=1, choices=[("S", "Self"), ("E", "Employer"), ("G", "Government")],verbose_name="Sponsor")
     date_joined = models.DateField(auto_now_add=True, verbose_name="Date Joined")
 
@@ -61,21 +75,63 @@ class Member(BaseModel):
     registered_by = models.ForeignKey('Agent', on_delete=models.SET_NULL, null=True, blank=True, related_name="registered_members", verbose_name="Registered By Agent")
 
 
+    objects = MemberManager()
+
     def __str__(self):
         return f"{self.membership_number} - {self.name.upper()}"
 
+    def clean(self):
+        """
+        Validate member hierarchy rules:
+        - Only Community, Family, or Corporate members can have children
+        - Individual or HealthSave members can only be children (must have a parent)
+        """
+        super().clean()
+        
+        # Check if this member can have children
+        if hasattr(self, 'sub_members') and self.sub_members.exists():
+            if self.type not in ['CM', 'FM', 'CO']:
+                raise ValidationError({
+                    'type': f'{self.get_type_display()} members cannot have child members. Only Community, Family, or Corporate members can have children.'
+                })
+        
+        # Check if this member type can be a child
+        if self.parent:
+            if self.type not in ['IN', 'HS']:
+                raise ValidationError({
+                    'parent': f'{self.get_type_display()} members cannot be child members. Only Individual or HealthSave members can be children.'
+                })
+            
+            # Ensure parent is of correct type
+            if self.parent.type not in ['CM', 'FM', 'CO']:
+                raise ValidationError({
+                    'parent': f'Parent must be a Community, Family, or Corporate member. {self.parent.get_type_display()} cannot be a parent.'
+                })
+        # else:
+        #     # If no parent, Individual and HealthSave members should have a parent
+        #     if self.type in ['IN', 'HS']:
+        #         raise ValidationError({
+        #             'parent': f'{self.get_type_display()} members must have a parent. Only Community, Family, or Corporate members can be standalone.'
+        #         })
+
     def save(self, *args, **kwargs):
+        # Run validation before saving
+        self.clean()
+        
         if self.stop_order_form == "off":
             self.stop_order_amount = 0
             self.stop_order_number = None
 
         if not self.membership_number:
+
             if self.parent:
                 # Sub-member inherits prefix from parent and gets sequential number
-                parent_prefix = self.parent.membership_number[:4]  # First 4 digits
+                parent_prefix = self.parent.membership_number[:8]  # First 4 digits
                 from sequences import Sequence
                 sequence_number = Sequence(f'sub_member_{parent_prefix}').get_next_value()
-                self.membership_number = f"{parent_prefix}{sequence_number:04d}"
+                self.membership_number = f"{parent_prefix}{sequence_number:02d}"
+
+                print("self.membership_number", self.membership_number)
             else:
                 # Generate new membership number based on type
                 type_prefixes = {
@@ -86,12 +142,13 @@ class Member(BaseModel):
                     "FM": "50",  # Family
                     "MF": "60",  # Microfinance
                 }
+                today = timezone.now().date()
+                date_prefix = today.strftime("%y")+ today.strftime("%m")[1]
 
                 prefix = type_prefixes.get(self.type, "99")
                 from sequences import Sequence
-                sequence_number = Sequence(f'member_number_{self.type}').get_next_value()
-                self.membership_number = f"{prefix}{sequence_number:06d}"
-
+                sequence_number = Sequence(f'member_number_{self.type}_{date_prefix}').get_next_value()
+                self.membership_number = f"{prefix}{date_prefix}{sequence_number:03d}00"
         super().save(*args, **kwargs)
 
     class Meta:

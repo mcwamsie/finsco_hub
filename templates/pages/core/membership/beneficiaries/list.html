@@ -1,0 +1,48 @@
+{% extends 'layouts/core/base.html' %}
+{% load static %}
+
+{% block title %}Beneficiaries{% endblock %}
+
+{% block content %}
+    <!-- Header -->
+    {% include "pages/core/membership/partials/beneficiary-list/header.html" %}
+
+
+    {% include "pages/core/membership/partials/beneficiary-list/toolbar.html" %}
+
+    <!-- Beneficiary List Container -->
+    <div id="beneficiary-list-container"
+         hx-get="{% url 'membership:beneficiaries_list' %}"
+         hx-trigger="load" class="flex flex-col flex-1 pb-8">
+        <!-- Beneficiary list will be loaded here via HTMX -->
+        <div class="flex items-center justify-center py-12">
+            <div class="text-center">
+                <i class="bi bi-person-heart text-4xl text-gray-400 mb-4"></i>
+                <p class="text-gray-500">Loading beneficiaries...</p>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block sidebar %}
+    {% include 'layouts/core/sidebar/membership.html' %}
+{% endblock %}
+
+{% block modals %}
+    {% include "pages/core/membership/partials/beneficiary-list/new-modal.html" with modal_id="new-beneficiary-modal" %}
+    {% include "pages/core/membership/partials/beneficiary-list/edit-modal.html" with modal_id="edit-beneficiary-modal" %}
+{% endblock %}
+
+
+{% block extra_js %}
+    <script>
+        const $newBeneficiaryModalElement = document.getElementById('new-beneficiary-modal');
+        const $editBeneficiaryModalElement = document.getElementById('edit-beneficiary-modal');
+        const newModalInstanceOptions = {id: 'new-beneficiary-modal', override: true};
+        const editModalInstanceOptions = {id: 'edit-beneficiary-modal', override: true};
+
+        const new_modal = new Modal($newBeneficiaryModalElement, modalOptions, newModalInstanceOptions);
+        const edit_modal = new Modal($editBeneficiaryModalElement, modalOptions, editModalInstanceOptions);
+
+    </script>
+{% endblock %}

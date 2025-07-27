@@ -1,0 +1,82 @@
+{% extends 'layouts/core/base.html' %}
+{% load static %}
+
+{% block title %}
+    Services
+{% endblock %}
+
+{% block content %}
+    <!-- Header -->
+    {% include 'pages/core/services/partials/services-list/header.html' %}
+
+    <!-- Toolbar -->
+    {% include 'pages/core/services/partials/services-list/toolbar.html' %}
+
+    <!-- Services List -->
+    <div class="p-6 flex-1 flex-col flex">
+        <div class="bg-white rounded-sm shadow-sm border border-gray-200 flex-1 flex flex-col">
+            <div id="services-list-container"
+                 hx-get="{% url 'services:services_list' %}"
+                 hx-trigger="load"
+                 hx-indicator="#services-list-loading"
+                 class="flex-1 flex flex-col">
+                <!-- Loading indicator -->
+                <div id="services-list-loading" class="flex items-center justify-center h-64">
+                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- New Service Modal Container -->
+    <div id="new-service-modal-container"></div>
+
+    <!-- Edit Service Modal Container -->
+    <div id="edit-service-modal-container"></div>
+{% endblock %}
+
+{% block sidebar %}
+    {% include 'layouts/core/sidebar/services.html' %}
+{% endblock %}
+
+{% block modals %}
+    {% include "pages/core/services/partials/services-list/new-modal.html" with modal_id="new-service-modal" %}
+    {% include "pages/core/services/partials/services-list/edit-modal.html" with modal_id="edit-service-modal" %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize new service modal
+    const $newServiceModalElement = document.getElementById('new-service-modal');
+    if ($newServiceModalElement) {
+        const modalOptions = {
+            placement: 'bottom-right',
+            backdrop: 'dynamic',
+            backdropClasses: 'bg-gray-900/50 fixed inset-0 z-40',
+            closable: true,
+        };
+        const newModalInstanceOptions = {id: 'new-service-modal', override: true};
+        window.new_modal = new Modal($newServiceModalElement, modalOptions, newModalInstanceOptions);
+    }
+
+    // Initialize edit service modal
+    const $editServiceModalElement = document.getElementById('edit-service-modal');
+    if ($editServiceModalElement) {
+        const modalOptions = {
+            placement: 'bottom-right',
+            backdrop: 'dynamic',
+            backdropClasses: 'bg-gray-900/50 fixed inset-0 z-40',
+            closable: true,
+        };
+        const editModalInstanceOptions = {id: 'edit-service-modal', override: true};
+        window.edit_modal = new Modal($editServiceModalElement, modalOptions, editModalInstanceOptions);
+    }
+
+    // Auto-refresh quick stats every 30 seconds
+    setInterval(function() {
+        htmx.trigger('#services-quick-stats', 'refresh');
+    }, 30000);
+});
+</script>
+{% endblock %}

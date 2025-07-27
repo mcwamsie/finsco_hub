@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{% endblock %} - Feedback Management</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+
+    <!-- Flowbite -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.css" rel="stylesheet">
+
+    <!-- HTMX -->
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'airtable-blue': '#4a67c4',
+                        'airtable-blue-light': '#6b82d6'
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        .gradient-blue {
+            background: linear-gradient(135deg, #4a67c4 0%, #6b82d6 100%);
+        }
+        .browser-gradient {
+            background: linear-gradient(to bottom, #e8e8e8, #d0d0d0);
+        }
+        .modal-backdrop {
+            backdrop-filter: blur(4px);
+        }
+        /* Loading state animations */
+        @keyframes pulse-loading {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .loading-pulse {
+            animation: pulse-loading 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        /* Disable pointer events during loading */
+        .loading-disabled {
+            pointer-events: none !important;
+            user-select: none !important;
+        }
+    </style>
+
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="bg-gray-50 overflow-x-auto">
+    <!-- Include Loading States Component -->
+    {% include 'components/loading_states.html' %}
+
+    <!-- Browser Header -->
+{#    <div class="browser-gradient h-10 flex items-center px-3 border-b border-gray-400 min-w-max">#}
+{#        <div class="flex gap-2 mr-3">#}
+{#            <div class="w-3 h-3 bg-red-500 rounded-full"></div>#}
+{#            <div class="w-3 h-3 bg-yellow-400 rounded-full"></div>#}
+{#            <div class="w-3 h-3 bg-green-500 rounded-full"></div>#}
+{#        </div>#}
+{#        <div class="flex gap-2 mr-3">#}
+{#            <div class="w-6 h-6 bg-gray-200 border border-gray-400 rounded flex items-center justify-center text-gray-600 text-xs">#}
+{#                <i class="bi bi-arrow-left"></i>#}
+{#            </div>#}
+{#            <div class="w-6 h-6 bg-gray-200 border border-gray-400 rounded flex items-center justify-center text-gray-600 text-xs">#}
+{#                <i class="bi bi-arrow-right"></i>#}
+{#            </div>#}
+{#            <div class="w-6 h-6 bg-gray-200 border border-gray-400 rounded flex items-center justify-center text-gray-600 text-xs">#}
+{#                <i class="bi bi-arrow-clockwise"></i>#}
+{#            </div>#}
+{#        </div>#}
+{#        <div class="flex-1 h-6 bg-white border border-gray-400 rounded px-2 flex items-center text-sm">#}
+{#            <i class="bi bi-lock-fill mr-1"></i>#}
+{#            {% block browser_title %}Feedback Management{% endblock %}#}
+{#            <i class="bi bi-star-fill ml-1 text-yellow-500"></i>#}
+{#        </div>#}
+{#    </div>#}
+
+    <!-- Main Header -->
+    <div class="gradient-blue text-white px-5 py-3 flex items-center justify-between min-w-max">
+        <div class="flex items-center gap-4">
+            <button class="lg:hidden bg-white bg-opacity-15 border border-white border-opacity-30 p-1.5 rounded" onclick="toggleSidebar()">
+                <i class="bi bi-list w-4 h-4"></i>
+            </button>
+            <div class="w-6 h-6 bg-white rounded flex items-center justify-center text-airtable-blue">
+                <i class="bi bi-bar-chart-fill"></i>
+            </div>
+            <div class="flex items-center gap-2 text-base font-medium">
+                {% block app_name %}Feedback Management{% endblock %}
+                <i class="bi bi-chevron-down text-white text-opacity-70 text-sm"></i>
+            </div>
+            <nav class="hidden lg:flex gap-6">
+                <a href="{% url 'dashboard' %}" class="text-white {% if request.resolver_match.url_name == 'dashboard' %}border-b-2 border-white{% else %}text-opacity-80 hover:text-white{% endif %} pb-1 cursor-pointer nav-link">
+                    Data
+                </a>
+                <div class="text-white text-opacity-80 pb-1 cursor-pointer hover:text-white">Automations</div>
+                <div class="text-white text-opacity-80 pb-1 cursor-pointer hover:text-white">Interfaces</div>
+                <div class="text-white text-opacity-80 pb-1 cursor-pointer hover:text-white">Forms</div>
+            </nav>
+        </div>
+        <div class="flex items-center gap-3">
+            <div class="text-white text-opacity-70 text-sm hidden md:flex items-center gap-1">
+                <i class="bi bi-circle text-xs"></i>
+                <span id="save-status">Saved</span>
+            </div>
+            <button class="hidden md:flex bg-white bg-opacity-15 border border-white border-opacity-30 px-3 py-1.5 rounded text-sm items-center gap-1.5">
+                <i class="bi bi-arrow-clockwise"></i>
+                Help
+            </button>
+            <button class="bg-white bg-opacity-15 border border-white border-opacity-30 px-3 py-1.5 rounded text-sm flex items-center gap-1.5">
+                <i class="bi bi-share"></i>
+                Share
+            </button>
+            {% if user.is_authenticated %}
+                <div class="relative group">
+                    <div class="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center font-bold text-sm cursor-pointer">
+                        {{ user.first_name.0|default:user.username.0|upper }}
+                    </div>
+                    <div class="absolute right-0 top-full mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 hidden group-hover:block">
+                        <a href="{% url 'profile' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 nav-link">
+                            <i class="bi bi-person mr-2"></i>Profile
+                        </a>
+                        <a href="{% url 'settings' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 nav-link">
+                            <i class="bi bi-gear mr-2"></i>Settings
+                        </a>
+                        <hr class="my-1">
+                        <form method="post" action="{% url 'logout' %}" class="logout-form">
+                            {% csrf_token %}
+                            <button type="submit" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center">
+                                <i class="bi bi-box-arrow-right mr-2"></i>
+                                <span class="logout-text">Logout</span>
+                                <div class="logout-loading hidden flex items-center ml-2">
+                                    <div class="animate-spin rounded-full h-3 w-3 border-b-2 border-gray-600"></div>
+                                </div>
+                            </button>
+                        </form>
+                    </div>
+                    {% if user.unread_notifications_count %}
+                        <div class="absolute -top-0.5 -right-0.5 bg-red-500 text-white rounded-full w-4 h-4 text-xs flex items-center justify-center">
+                            {{ user.unread_notifications_count }}
+                        </div>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Content Area -->
+    <div class="flex min-h-screen">
+        {% include 'layouts/sidebar.html' %}
+
+        <!-- Main Content -->
+        <div class="flex-1 bg-white flex flex-col lg:ml-0" id="main-content">
+            {% block content %}{% endblock %}
+        </div>
+    </div>
+
+    <!-- Mobile Overlay -->
+    <div id="overlay" class="fixed inset-0 bg-black bg-opacity-50 z-10 hidden lg:hidden" onclick="toggleSidebar()"></div>
+
+    <!-- Toast Notifications Container -->
+    <div id="toast-container" class="fixed top-4 right-4 z-50 space-y-2">
+        <!-- Toast notifications will be dynamically added here -->
+    </div>
+
+    <!-- Messages -->
+    {% if messages %}
+        <div id="messages" class="fixed top-4 right-4 z-50 space-y-2">
+            {% for message in messages %}
+                <div class="px-4 py-3 rounded-lg text-white transform transition-all duration-300 shadow-lg {% if message.tags == 'success' %}bg-green-500{% elif message.tags == 'error' %}bg-red-500{% elif message.tags == 'warning' %}bg-yellow-500{% else %}bg-blue-500{% endif %}">
+                    <div class="flex items-center gap-2">
+                        {% if message.tags == 'success' %}
+                            <i class="bi bi-check-circle"></i>
+                        {% elif message.tags == 'error' %}
+                            <i class="bi bi-exclamation-circle"></i>
+                        {% elif message.tags == 'warning' %}
+                            <i class="bi bi-exclamation-triangle"></i>
+                        {% else %}
+                            <i class="bi bi-info-circle"></i>
+                        {% endif %}
+                        {{ message }}
+                        <button onclick="this.parentElement.parentElement.remove()" class="ml-auto text-white hover:text-gray-200">
+                            <i class="bi bi-x"></i>
+                        </button>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- Flowbite JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.js"></script>
+
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('overlay');
+
+            if (sidebar.classList.contains('-translate-x-full')) {
+                sidebar.classList.remove('-translate-x-full');
+                sidebar.classList.add('translate-x-0');
+                overlay.classList.remove('hidden');
+            } else {
+                sidebar.classList.add('-translate-x-full');
+                sidebar.classList.remove('translate-x-0');
+                overlay.classList.add('hidden');
+            }
+        }
+
+        // Handle window resize
+        window.addEventListener('resize', function() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('overlay');
+
+            if (window.innerWidth >= 1024) {
+                sidebar.classList.remove('-translate-x-full');
+                sidebar.classList.add('translate-x-0');
+                overlay.classList.add('hidden');
+            } else {
+                sidebar.classList.add('-translate-x-full');
+                sidebar.classList.remove('translate-x-0');
+                overlay.classList.add('hidden');
+            }
+        });
+
+        // Close sidebar when clicking outside
+        document.addEventListener('click', function(event) {
+            const sidebar = document.getElementById('sidebar');
+            const menuBtn = document.querySelector('[onclick="toggleSidebar()"]');
+
+            if (window.innerWidth < 1024 &&
+                !sidebar.contains(event.target) &&
+                menuBtn && !menuBtn.contains(event.target) &&
+                !sidebar.classList.contains('-translate-x-full')) {
+                toggleSidebar();
+            }
+        });
+
+        // Auto-hide messages
+        document.addEventListener('DOMContentLoaded', function() {
+            const messages = document.getElementById('messages');
+            if (messages) {
+                setTimeout(() => {
+                    messages.style.transform = 'translateX(100%)';
+                    setTimeout(() => {
+                        messages.remove();
+                    }, 300);
+                }, 5000);
+            }
+
+            // Setup logout form
+            const logoutForm = document.querySelector('.logout-form');
+            if (logoutForm) {
+                logoutForm.addEventListener('submit', function() {
+                    const logoutText = this.querySelector('.logout-text');
+                    const logoutLoading = this.querySelector('.logout-loading');
+
+                    logoutText.classList.add('hidden');
+                    logoutLoading.classList.remove('hidden');
+
+                    window.loadingManager.showPageLoading('Signing you out...');
+                });
+            }
+
+            // Setup navigation links with loading
+            const navLinks = document.querySelectorAll('.nav-link');
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    if (this.href && this.href !== window.location.href) {
+                        window.loadingManager.showPageLoading('Loading...');
+                    }
+                });
+            });
+        });
+
+        // Save status indicator
+        function updateSaveStatus(status, message) {
+            const saveStatus = document.getElementById('save-status');
+            if (saveStatus) {
+                switch(status) {
+                    case 'saving':
+                        saveStatus.innerHTML = '<i class="bi bi-arrow-clockwise animate-spin mr-1"></i>Saving...';
+                        saveStatus.className = 'text-yellow-300';
+                        break;
+                    case 'saved':
+                        saveStatus.innerHTML = '<i class="bi bi-check mr-1"></i>Saved';
+                        saveStatus.className = 'text-green-300';
+                        break;
+                    case 'error':
+                        saveStatus.innerHTML = '<i class="bi bi-exclamation-triangle mr-1"></i>Error';
+                        saveStatus.className = 'text-red-300';
+                        break;
+                    default:
+                        saveStatus.textContent = message || 'Saved';
+                        saveStatus.className = 'text-white text-opacity-70';
+                }
+            }
+        }
+
+        // Toast notification system
+        function showToast(message, type = 'info', duration = 4000) {
+            const container = document.getElementById('toast-container');
+            if (!container) return;
+
+            const toast = document.createElement('div');
+            toast.className = `px-4 py-3 rounded-lg text-white transform transition-all duration-300 shadow-lg ${
+                type === 'success' ? 'bg-green-500' :
+                type === 'error' ? 'bg-red-500' :
+                type === 'warning' ? 'bg-yellow-500' :
+                'bg-blue-500'
+            }`;
+
+            const iconClass =
+                type === 'success' ? 'bi-check-circle' :
+                type === 'error' ? 'bi-exclamation-circle' :
+                type === 'warning' ? 'bi-exclamation-triangle' :
+                'bi-info-circle';
+
+            toast.innerHTML = `
+                <div class="flex items-center gap-2">
+                    <i class="bi ${iconClass}"></i>
+                    <span>${message}</span>
+                    <button onclick="this.parentElement.parentElement.remove()" class="ml-auto text-white hover:text-gray-200">
+                        <i class="bi bi-x"></i>
+                    </button>
+                </div>
+            `;
+
+            // Add entrance animation
+            toast.style.transform = 'translateX(100%)';
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.transform = 'translateX(0)';
+            }, 10);
+
+            // Auto-remove
+            setTimeout(() => {
+                toast.style.transform = 'translateX(100%)';
+                setTimeout(() => {
+                    if (toast.parentNode) {
+                        toast.remove();
+                    }
+                }, 300);
+            }, duration);
+        }
+
+        // Global error handler
+        window.addEventListener('error', function(e) {
+            console.error('Global error:', e.error);
+            showToast('An unexpected error occurred. Please try again.', 'error');
+        });
+
+        // Connection status monitoring
+        function updateConnectionStatus() {
+            if (navigator.onLine) {
+                updateSaveStatus('saved', 'Online');
+            } else {
+                updateSaveStatus('error', 'Offline');
+                showToast('You are offline. Changes will be saved when connection is restored.', 'warning', 8000);
+            }
+        }
+
+        window.addEventListener('online', updateConnectionStatus);
+        window.addEventListener('offline', updateConnectionStatus);
+
+        // Expose utility functions globally
+        window.showToast = showToast;
+        window.updateSaveStatus = updateSaveStatus;
+    </script>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

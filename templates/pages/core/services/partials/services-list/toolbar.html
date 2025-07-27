@@ -1,0 +1,73 @@
+{% load static %}
+
+<!-- Toolbar -->
+<div class="bg-white px-4 py-3 border-b flex items-center justify-between">
+    <div class="flex items-center gap-4 divide-x divide-gray-400">
+        <button
+                hx-get="{% url 'services:service_create' %}"
+                hx-target="#new-service-modal-container"
+                hx-trigger="click"
+                onclick="new_modal.show()"
+                hx-indicator="#new-service-modal-overlay"
+                class="flex items-center space-x-2 text-sm text-gray-600 hover:text-gray-800">
+            <i class="bi bi-plus h-4 w-4"></i>
+            <span>New Service</span>
+        </button>
+        <button class="flex items-center space-x-2 pl-4 text-sm text-gray-600 hover:text-gray-800">
+            <i class="bi bi-gear"></i>
+            <span>Active Services</span>
+        </button>
+    </div>
+    <button class="flex items-center space-x-2 text-sm text-gray-600 hover:text-gray-800">
+        <i class="bi bi-share"></i>
+        <span>Share and sync</span>
+    </button>
+</div>
+
+<!-- Quick Stats -->
+<div class="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4 px-4">
+    <div class="bg-blue-50 rounded-lg p-3">
+        <div class="flex items-center">
+            <div class="flex-shrink-0">
+                <i class="bi bi-gear text-blue-600 text-lg"></i>
+            </div>
+            <div class="ml-3">
+                <p class="text-sm font-medium text-blue-900">Total</p>
+                <p class="text-lg font-semibold text-blue-600">{{ total_services|default:0 }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="bg-green-50 rounded-lg p-3">
+        <div class="flex items-center">
+            <div class="flex-shrink-0">
+                <i class="bi bi-check-circle text-green-600 text-lg"></i>
+            </div>
+            <div class="ml-3">
+                <p class="text-sm font-medium text-green-900">Active</p>
+                <p class="text-lg font-semibold text-green-600">{{ active_services|default:0 }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="bg-red-50 rounded-lg p-3">
+        <div class="flex items-center">
+            <div class="flex-shrink-0">
+                <i class="bi bi-x-circle text-red-600 text-lg"></i>
+            </div>
+            <div class="ml-3">
+                <p class="text-sm font-medium text-red-900">Inactive</p>
+                <p class="text-lg font-semibold text-red-600">{{ inactive_services|default:0 }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="bg-purple-50 rounded-lg p-3">
+        <div class="flex items-center">
+            <div class="flex-shrink-0">
+                <i class="bi bi-tags text-purple-600 text-lg"></i>
+            </div>
+            <div class="ml-3">
+                <p class="text-sm font-medium text-purple-900">Categories</p>
+                <p class="text-lg font-semibold text-purple-600">{{ service_categories|default:0 }}</p>
+            </div>
+        </div>
+    </div>
+</div>

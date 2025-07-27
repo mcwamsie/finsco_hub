@@ -1,0 +1,212 @@
+{% extends "layouts/base.html" %}
+{% load static %}
+
+{% block content %}
+<!-- Main Layout Container -->
+<div class="flex h-full bg-gray-50">
+    <!-- Sidebar -->
+    {% include 'layouts/sidebar.html' %}
+    
+    <!-- Main Content Area -->
+    <div class="flex-1 flex flex-col overflow-hidden">
+        <!-- Page Header -->
+        <div class="bg-white border-b border-gray-200 px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-4">
+                    <h1 class="text-xl font-semibold text-gray-900">
+                        {% block page_title %}Dashboard{% endblock %}
+                    </h1>
+                    {% block page_actions %}{% endblock %}
+                </div>
+                <div class="flex items-center gap-3">
+                    {% block header_actions %}
+                    <button class="btn-secondary px-3 py-2 text-sm" onclick="showHelpModal()">
+                        <i class="bi bi-question-circle mr-1"></i>
+                        Help
+                    </button>
+                    <button class="btn-primary px-4 py-2 text-sm" data-action="add-new">
+                        <i class="bi bi-plus mr-1"></i>
+                        Add New
+                    </button>
+                    {% endblock %}
+                </div>
+            </div>
+            
+            <!-- Breadcrumb -->
+            {% block breadcrumb %}
+            <nav class="flex mt-2" aria-label="Breadcrumb">
+                <ol class="flex items-center space-x-2 text-sm text-gray-500">
+                    <li>
+                        <a href="{% url 'dashboard' %}" class="hover:text-gray-700 nav-link">
+                            <i class="bi bi-house"></i>
+                        </a>
+                    </li>
+                    {% block breadcrumb_items %}{% endblock %}
+                </ol>
+            </nav>
+            {% endblock %}
+        </div>
+        
+        <!-- Content Area -->
+        <div class="flex-1 overflow-hidden">
+            {% block main_content %}
+            <div class="h-full p-6">
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 h-full">
+                    <div class="p-6">
+                        {% block page_content %}
+                        <p class="text-gray-500">Content goes here...</p>
+                        {% endblock %}
+                    </div>
+                </div>
+            </div>
+            {% endblock %}
+        </div>
+    </div>
+</div>
+
+<!-- Modals Container -->
+<div id="modals-container">
+    {% block modals %}{% endblock %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize layout-specific functionality
+    initializeLayout();
+    
+    // Setup form submissions with loading states
+    setupFormHandlers();
+    
+    // Setup navigation with loading indicators
+    setupNavigationHandlers();
+});
+
+function initializeLayout() {
+    // Auto-save functionality
+    let saveTimeout;
+    const autoSaveElements = document.querySelectorAll('[data-autosave]');
+    
+    autoSaveElements.forEach(element => {
+        element.addEventListener('input', function() {
+            clearTimeout(saveTimeout);
+            updateSaveStatus('saving');
+            
+            saveTimeout = setTimeout(() => {
+                // Simulate auto-save
+                updateSaveStatus('saved');
+            }, 1000);
+        });
+    });
+    
+    // Keyboard shortcuts
+    document.addEventListener('keydown', function(e) {
+        // Ctrl/Cmd + S for save
+        if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+            e.preventDefault();
+            const activeForm = document.querySelector('form:focus-within');
+            if (activeForm) {
+                activeForm.dispatchEvent(new Event('submit'));
+            }
+        }
+        
+        // Escape to close modals
+        if (e.key === 'Escape') {
+            const openModal = document.querySelector('.modal.show');
+            if (openModal) {
+                closeModal(openModal.id);
+            }
+        }
+    });
+}
+
+function setupFormHandlers() {
+    const forms = document.querySelectorAll('form[data-loading]');
+    
+    forms.forEach(form => {
+        form.addEventListener('submit', function(e) {
+            const submitBtn = this.querySelector('button[type="submit"]');
+            const loadingText = this.getAttribute('data-loading-text') || 'Processing...';
+            
+            if (submitBtn) {
+                // Disable form elements
+                const formElements = this.querySelectorAll('input, select, textarea, button');
+                formElements.forEach(el => {
+                    el.disabled = true;
+                    el.classList.add('loading-disabled');
+                });
+                
+                // Update submit button
+                const originalText = submitBtn.innerHTML;
+                submitBtn.innerHTML = `
+                    <div class="flex items-center gap-2">
+                        <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                        <span>${loadingText}</span>
+                    </div>
+                `;
+                
+                // Show page loading if specified
+                if (this.hasAttribute('data-page-loading')) {
+                    window.loadingManager.showPageLoading(loadingText);
+                }
+                
+                // Re-enable on error (if form doesn't redirect)
+                setTimeout(() => {
+                    if (document.contains(this)) {
+                        formElements.forEach(el => {
+                            el.disabled = false;
+                            el.classList.remove('loading-disabled');
+                        });
+                        submitBtn.innerHTML = originalText;
+                    }
+                }, 10000); // 10 second timeout
+            }
+        });
+    });
+}
+
+function setupNavigationHandlers() {
+    const navLinks = document.querySelectorAll('a[data-loading]');
+    
+    navLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            const loadingText = this.getAttribute('data-loading-text') || 'Loading...';
+            window.loadingManager.showPageLoading(loadingText);
+        });
+    });
+}
+
+function showHelpModal() {
+    // Implementation for help modal
+    showToast('Help documentation coming soon!', 'info');
+}
+
+// Utility functions for common actions
+function refreshData() {
+    updateSaveStatus('saving', 'Refreshing...');
+    window.loadingManager.showPageLoading('Refreshing data...');
+    
+    // Simulate refresh
+    setTimeout(() => {
+        location.reload();
+    }, 1000);
+}
+
+function exportData(format = 'csv') {
+    showToast(`Exporting data as ${format.toUpperCase()}...`, 'info');
+    // Implementation for data export
+}
+
+function importData() {
+    // Implementation for data import
+    showToast('Import functionality coming soon!', 'info');
+}
+
+// Expose utility functions globally
+window.refreshData = refreshData;
+window.exportData = exportData;
+window.importData = importData;
+</script>
+{% endblock %}

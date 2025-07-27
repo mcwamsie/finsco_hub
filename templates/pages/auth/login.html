@@ -1,0 +1,143 @@
+{% extends 'layouts/auth-base.html' %}
+{% load static %}
+
+{% block title %}Sign In - Fisco Hub{% endblock %}
+
+{% block content %}
+
+    <!-- Login Method Toggle -->
+    <div class="flex bg-gray-100 rounded-lg p-1 mb-6">
+        <button type="button"
+                class="flex-1 py-2 px-4 text-sm font-medium rounded-md transition-all duration-200 login-method-btn active"
+                data-method="email">
+            Email Only
+        </button>
+        <button type="button"
+                class="flex-1 py-2 px-4 text-sm font-medium rounded-md transition-all duration-200 login-method-btn"
+                data-method="traditional">
+            Email & Password
+        </button>
+    </div>
+
+    <!-- Form Container for HTMX -->
+    <div id="form-container">
+        <!-- Email Only Login Form -->
+        {% include "partial/auth/login/email-form.html" with form=email_form %}
+        <!-- Traditional Login Form -->
+        {% include "partial/auth/login/login-form.html" with form=login_form %}
+    </div>
+
+    <!-- Loading Indicator -->
+    <div id="loading-indicator" class="hidden text-center py-4">
+        <div class="inline-flex items-center px-4 py-2 font-semibold leading-6 text-sm shadow rounded-md text-blue-500 bg-blue-100 transition ease-in-out duration-150">
+            <i class="animate-spin -ml-1 mr-3 h-5 w-5 text-blue-500 inline bi bi-circle"></i>
+            Processing...
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Login method toggle
+            const methodBtns = document.querySelectorAll('.login-method-btn');
+            const forms = document.querySelectorAll('.login-form');
+
+            methodBtns.forEach(btn => {
+                btn.addEventListener('click', function () {
+                    const method = this.dataset.method;
+
+                    // Update button states
+                    methodBtns.forEach(b => b.classList.remove('active', 'bg-white', 'text-gray-900', 'shadow-sm'));
+                    methodBtns.forEach(b => b.classList.add('text-gray-500'));
+                    this.classList.add('active', 'bg-white', 'text-gray-900', 'shadow-sm');
+                    this.classList.remove('text-gray-500');
+
+                    // Update form visibility
+                    forms.forEach(form => {
+                        form.classList.remove('active');
+                        form.style.display = 'none';
+                    });
+
+                    const targetForm = method === 'email' ?
+                        document.getElementById('email-login-form') :
+                        document.getElementById('traditional-login-form');
+
+                    if (targetForm) {
+                        targetForm.classList.add('active');
+                        targetForm.style.display = 'block';
+                    }
+                });
+            });
+
+            // Initialize first method as active
+            const emailBtn = document.querySelector('[data-method="email"]');
+            if (emailBtn) {
+                emailBtn.classList.add('bg-white', 'text-gray-900', 'shadow-sm');
+                emailBtn.classList.remove('text-gray-500');
+            }
+
+            // Show email form by default
+            const emailForm = document.getElementById('email-login-form');
+            if (emailForm) {
+                emailForm.style.display = 'block';
+            }
+
+            const traditionalForm = document.getElementById('traditional-login-form');
+            if (traditionalForm) {
+                traditionalForm.style.display = 'none';
+            }
+        });
+
+        // HTMX event handlers
+        document.body.addEventListener('htmx:beforeRequest', function (evt) {
+            const form = evt.target;
+            const submitBtn = form.querySelector('.submit-btn');
+            const inputs = form.querySelectorAll('input, select, textarea');
+
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.querySelector('.btn-text').classList.add('hidden');
+                submitBtn.querySelector('.btn-loading').classList.remove('hidden');
+            }
+
+            inputs.forEach(input => {
+                input.disabled = true;
+            });
+        });
+
+        document.body.addEventListener('htmx:afterRequest', function (evt) {
+            const form = evt.target;
+            const submitBtn = form.querySelector('.submit-btn');
+            const inputs = form.querySelectorAll('input, select, textarea');
+
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.querySelector('.btn-text').classList.remove('hidden');
+                submitBtn.querySelector('.btn-loading').classList.add('hidden');
+            }
+
+            inputs.forEach(input => {
+                input.disabled = false;
+            });
+        });
+    </script>
+
+    <style>
+        .login-form {
+            display: none;
+        }
+
+        .login-form.active {
+            display: block;
+        }
+
+        .login-method-btn {
+            color: #6b7280;
+        }
+
+        .login-method-btn.active {
+            background-color: white;
+            color: #111827;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        }
+    </style>
+{% endblock %}

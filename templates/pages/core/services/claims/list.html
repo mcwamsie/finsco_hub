@@ -1,0 +1,86 @@
+{% extends 'layouts/core/base.html' %}
+{% load static %}
+
+{% block title %}
+    Claims - Services
+{% endblock %}
+
+{% block content %}
+    <!-- Header -->
+    {% include "pages/core/services/partials/claim-list/header.html" %}
+
+    <!-- Toolbar -->
+    {% include "pages/core/services/partials/claim-list/toolbar.html" %}
+
+    <!-- Claims List Container -->
+    <div id="claim-list-container"
+         hx-get="{% url 'services:claims_list' %}"
+         hx-trigger="load" class="flex flex-col flex-1">
+        <!-- Claims list will be loaded here via HTMX -->
+        <div class="flex items-center justify-center py-12">
+            <div class="text-center">
+                <i class="bi bi-file-medical text-4xl text-gray-400 mb-4"></i>
+                <p class="text-gray-500">Loading claims...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Container -->
+    <div id="modal-container"></div>
+
+    <!-- Edit Claim Modal Container -->
+    <div id="edit-claim-modal-container"></div>
+{% endblock %}
+
+{% block sidebar %}
+    {% include 'layouts/core/sidebar/services.html' %}
+{% endblock %}
+
+{% block modals %}
+    {% include "pages/core/services/partials/claim-list/new-modal.html" with modal_id="new-claim-modal" %}
+    {% include "pages/core/services/partials/claim-list/edit-modal.html" with modal_id="edit-claim-modal" %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize modals
+    const $newClaimModalElement = document.getElementById('new-claim-modal');
+    const $editClaimModalElement = document.getElementById('edit-claim-modal');
+    
+    const modalOptions = {
+        placement: 'bottom-right',
+        backdrop: 'dynamic',
+        backdropClasses: 'bg-gray-900/50 fixed inset-0 z-40',
+        closable: true,
+        onHide: () => {
+            console.log('modal is hidden');
+        },
+        onShow: () => {
+            console.log('modal is shown');
+        },
+        onToggle: () => {
+            console.log('modal has been toggled');
+        },
+    };
+
+    const newModalInstanceOptions = {id: 'new-claim-modal', override: true};
+    const editModalInstanceOptions = {id: 'edit-claim-modal', override: true};
+
+    const new_modal = new Modal($newClaimModalElement, modalOptions, newModalInstanceOptions);
+    const edit_modal = new Modal($editClaimModalElement, modalOptions, editModalInstanceOptions);
+
+    // Make modals globally available
+    window.new_modal = new_modal;
+    window.edit_modal = edit_modal;
+
+    // Auto-refresh quick stats every 30 seconds
+    setInterval(function() {
+        htmx.ajax('GET', '{% url "services:claim_quick_stats" %}', {
+            target: '#claim-quick-stats',
+            swap: 'innerHTML'
+        });
+    }, 30000);
+});
+</script>
+{% endblock %}
