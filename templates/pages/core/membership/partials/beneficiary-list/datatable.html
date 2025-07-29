@@ -170,8 +170,8 @@
                         </div>
                     </a>
                 </td>
-                <td class="py-1.5 px-2 border text-end">
-                    <a href="{% url 'membership:members_detail' beneficiary.member.membership_number %}"
+                <td class="py-1.5 px-2 border text-start">
+                    <a href="{% url 'membership:members_detail' beneficiary.member.membership_number %}?from_beneficiaries=1"
                        class="text-blue-600 hover:text-blue-800">
                         <p class="font-medium text-gray-900">{{ beneficiary.member.name }}</p>
                         <span class="font-mono text-sm text-gray-500">{{ beneficiary.member.membership_number }}</span>

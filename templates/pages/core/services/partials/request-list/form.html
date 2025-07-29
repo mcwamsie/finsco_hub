@@ -1,0 +1,37 @@
+<form
+        {% if request %}
+            hx-post="{% url "services:request_edit" request.id %}"
+        {% else %}
+            hx-post="{% url 'services:request_create' %}"
+            hx-target="#new-request-modal-container"
+        {% endif %}
+            hx-swap="innerHTML"
+            novalidate=""
+            enctype="multipart/form-data"
+>
+    {% csrf_token %}
+
+    <!-- Modal body with scrollable content -->
+    <div class="p-2 md:p-3 space-y-4 max-h-[60vh] overflow-y-auto">
+        {% include "components/non-field-errors.html" %}
+
+        <div class="grid grid-cols-2 gap-4 md:gap-6">
+            {% include "components/field.html" with field=form.beneficiary field_widget_class="col-span-2" %}
+            {% include "components/field.html" with field=form.service_provider field_widget_class="col-span-2" %}
+            {% include "components/field.html" with field=form.service field_widget_class="col-span-2" %}
+            {% include "components/field.html" with field=form.requested_date field_widget_class="col-span-1" %}
+            {% include "components/field.html" with field=form.urgency field_widget_class="col-span-1" %}
+            {% include "components/field.html" with field=form.estimated_cost field_widget_class="col-span-1" %}
+            {% include "components/field.html" with field=form.approved_amount field_widget_class="col-span-1" %}
+            {% include "components/field.html" with field=form.notes field_widget_class="col-span-2" %}
+            {% include "components/field.html" with field=form.status field_widget_class="col-span-1" %}
+            {% include "components/field.html" with field=form.priority field_widget_class="col-span-1" %}
+        </div>
+    </div>
+
+    <div class="flex items-center p-2 md:p-3 border-t border-gray-200 justify-end">
+        <div class="w-40">
+            {% include "components/submit-button.html" %}
+        </div>
+    </div>
+</form>

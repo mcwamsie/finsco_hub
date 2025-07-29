@@ -82,32 +82,32 @@ class Beneficiary(BaseModel):
         """
         Returns the beneficiary's package. If not set, inherits from member's default package.
         """
-        if  self.member and self.member.default_package:
+        if self.member and self.member.default_package:
             return self.member.default_package
         return None
 
-    # @package.setter
-    # def package(self, value):
-    #     """
-    #     Sets the beneficiary's package.
-    #     """
-    #     self._package = value
+    @package.setter
+    def package(self, value):
+        """
+        Sets the beneficiary's package.
+        """
+        self._package = value
 
     @property
     def annual_limit(self):
         """
         Returns the beneficiary's annual limit. If not set or 0, inherits from package.
         """
-        if  self.member.default_package and hasattr(self.member.default_package, 'annual_limit'):
-            return self.member.default_package.annual_limit
+        if self.member and self.member.default_package.global_annual_limit > 0:
+            return self.member.default_package.global_annual_limit
         return Decimal('0.00')
 
-    # @annual_limit.setter
-    # def annual_limit(self, value):
-    #     """
-    #     Sets the beneficiary's annual limit.
-    #     """
-    #     self._annual_limit = value
+    @annual_limit.setter
+    def annual_limit(self, value):
+        """
+        Sets the beneficiary's annual limit.
+        """
+        self._annual_limit = value
 
     def save(self, force_insert=False, force_update=False, *args, **kwargs):
         # Set membership number from member
@@ -138,8 +138,8 @@ class Beneficiary(BaseModel):
                 self.principal = principal_member
 
         # Inherit package from member if not set
-        # if not self._package and self.member.default_package:
-        #     self._package = self.member.default_package
+        if not self._package and self.member.default_package:
+            self._package = self.member.default_package
 
         super().save(force_insert, force_update)
 

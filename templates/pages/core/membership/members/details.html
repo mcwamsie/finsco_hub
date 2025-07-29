@@ -47,11 +47,27 @@
                     <i class="bi bi-pencil-square mr-2"></i>
                     Edit Member
                 </button>
-                <a href="{% url 'membership:members' %}"
-                   class="inline-flex items-center px-4 py-2 border border-transparent rounded-sm shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                    <i class="bi bi-arrow-left mr-2"></i>
-                    Back to Members
-                </a>
+
+                {% if request.GET.from_beneficiaries %}
+                    <a href="{% url 'membership:beneficiaries' %}"
+                       class="inline-flex items-center px-4 py-2 border border-transparent rounded-sm shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        <i class="bi bi-arrow-left mr-2"></i>
+                        Back to Beneficiaries
+                    </a>
+                {% elif request.GET.from_beneficiary %}
+                    <a href="{% url 'membership:beneficiaries_detail' pk=request.GET.from_beneficiary %}"
+                       class="inline-flex items-center px-4 py-2 border border-transparent rounded-sm shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        <i class="bi bi-arrow-left mr-2"></i>
+                        Back to Beneficiary
+                    </a>
+                {% else %}
+                    <a href="{% url 'membership:members' %}"
+                       class="inline-flex items-center px-4 py-2 border border-transparent rounded-sm shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        <i class="bi bi-arrow-left mr-2"></i>
+                        Back to Members
+                    </a>
+                {% endif %}
+
             </div>
         </div>
     </div>

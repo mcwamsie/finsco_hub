@@ -1,33 +1,55 @@
 {% load static %}
 
-<div class="bg-gray-50 border-b flex items-center justify-between">
-  <!-- Breadcrumb -->
-    <nav class="justify-between px-4 py-3 text-gray-700 border-r border-gray-200 sm:flex"
-         aria-label="Breadcrumb">
-        <ol class="inline-flex items-center mb-3 space-x-1 md:space-x-2 rtl:space-x-reverse sm:mb-0">
-            <li>
-                <div class="flex items-center">
-                    <a href="{% url 'configurations:dashboard' %}"
-                       class="ms-1 text-sm font-medium text-gray-700 hover:text-blue-600 md:ms-2">
-                        Dashboard
-                    </a>
-                </div>
-            </li>
-            <li aria-current="page">
-                <div class="flex items-center">
-                    <i class="bi bi-chevron-right w-3 h-3 mx-1 text-gray-400 text-xs"></i>
-                    <a href="{% url 'membership:dashboard' %}"
-                       class="ms-1 text-sm font-medium text-gray-700 hover:text-blue-600 md:ms-2">
-                        Membership
-                    </a>
-                </div>
-            </li>
-            <li aria-current="page">
-                <div class="flex items-center ">
-                    <i class="bi bi-chevron-right w-3 h-3 mx-1 text-gray-400 text-xs"></i>
-                    <span class="mx-1 text-sm font-medium text-gray-500 md:mx-2">TopUps</span>
-                </div>
-            </li>
-        </ol>
-    </nav>
+<div class="bg-white border-b border-gray-200 px-6 py-4">
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+            <nav class="flex" aria-label="Breadcrumb">
+                <ol class="inline-flex items-center space-x-1 md:space-x-3">
+                    <li class="inline-flex items-center">
+                        <a href="{% url 'configurations:dashboard' %}"
+                           class="inline-flex items-center text-sm font-medium text-gray-700 hover:text-blue-600">
+                            <i class="bi bi-house-door mr-2"></i>
+                            Dashboard
+                        </a>
+                    </li>
+                    <li aria-current="page">
+                        <div class="flex items-center">
+                            <i class="bi bi-chevron-right text-gray-400"></i>
+                            <a href="{% url 'membership:dashboard' %}"
+                               class="ml-1 text-sm font-medium text-gray-700 hover:text-blue-600 md:ml-2">
+                                Membership
+                            </a>
+                        </div>
+                    </li>
+                    <li aria-current="page">
+                        <div class="flex items-center">
+                            <i class="bi bi-chevron-right text-gray-400"></i>
+                            <span class="ml-1 text-sm font-medium text-gray-500 md:ml-2">Top-ups</span>
+                        </div>
+                    </li>
+                </ol>
+            </nav>
+            <h1 class="mt-2 text-2xl font-bold text-gray-900">Top-ups</h1>
+            <p class="mt-1 text-sm text-gray-500">Manage member account top-ups and transactions</p>
+        </div>
+        <div class="flex items-center space-x-3">
+            <a href="{% url 'membership:members' %}"
+               class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-sm shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                <i class="bi bi-people mr-2"></i>
+                View Members
+            </a>
+            <a href="{% url 'membership:beneficiaries' %}"
+               class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-sm shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                <i class="bi bi-person-hearts mr-2"></i>
+                View Beneficiaries
+            </a>
+            <button hx-get="{% url 'membership:topup_create' %}"
+                    hx-target="#modal-container"
+                    hx-trigger="click"
+                    class="inline-flex items-center px-4 py-2 border border-transparent rounded-sm shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                <i class="bi bi-plus mr-2"></i>
+                Add Top-up
+            </button>
+        </div>
+    </div>
 </div>

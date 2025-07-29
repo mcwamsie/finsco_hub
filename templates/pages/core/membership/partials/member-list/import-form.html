@@ -1,0 +1,42 @@
+<form
+        hx-post="{% url "membership:members_import" %}"
+        hx-target="#import-member-modal-container"
+{#        hx-indicator="#import-member-modal-overlay"#}
+        hx-swap="innerHTML"
+        novalidate=""
+        enctype="multipart/form-data"
+>
+    {% csrf_token %}
+
+    <!-- Modal body with scrollable content -->
+    <div class="p-2 md:p-3 space-y-4 max-h-[60vh] overflow-y-auto">
+        {% include "components/non-field-errors.html" %}
+        <!-- Download Template Link -->
+
+        <div class="grid grid-cols-2 gap-4 md:gap-6">
+            {% include "components/field.html" with field=form.import_file field_widget_class="col-span-2" %}
+            {% include "components/field.html" with field=form.format field_widget_class="col-span-2" %}
+
+        </div>
+        <div class="bg-blue-50 border border-blue-200 rounded-md p-3">
+            <div class="flex items-center">
+                <i class="bi bi-info-circle text-blue-600 mr-2"></i>
+                <div>
+                    <p class="text-sm text-blue-800">
+                        Need a template?
+                        <a href="{% url 'membership:members_sample_template' %}"
+                           class="font-medium underline hover:text-blue-900">
+                            Download sample template
+                        </a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="flex items-center p-2 md:p-3 border-t border-gray-200 justify-end">
+        <div class="w-40">
+            {% include "components/submit-button.html" with button_text="Upload" loading_text="Uploading..." %}
+        </div>
+    </div>
+</form>

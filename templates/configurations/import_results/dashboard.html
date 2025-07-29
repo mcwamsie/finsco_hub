@@ -1,0 +1,260 @@
+{% extends 'layouts/base.html' %}
+{% load static %}
+
+{% block title %}Import Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>Import Dashboard</h2>
+                <a href="{% url 'configurations:import_results_list' %}" class="btn btn-primary">
+                    <i class="fas fa-list"></i> View All Results
+                </a>
+            </div>
+            
+            <!-- Statistics Cards -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card bg-primary text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h4>{{ stats.total_imports }}</h4>
+                                    <p class="mb-0">Total Imports</p>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="fas fa-upload fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-info text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h4>{{ stats.recent_imports }}</h4>
+                                    <p class="mb-0">Recent (30 days)</p>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="fas fa-calendar fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-success text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h4>{{ stats.successful_imports }}</h4>
+                                    <p class="mb-0">Successful</p>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="fas fa-check-circle fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-warning text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h4>{{ avg_success_rate }}%</h4>
+                                    <p class="mb-0">Avg Success Rate</p>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="fas fa-chart-line fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row">
+                <!-- Import Type Breakdown -->
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Import Types (Last 30 Days)</h5>
+                        </div>
+                        <div class="card-body">
+                            {% if import_type_stats %}
+                                {% for stat in import_type_stats %}
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <div>
+                                        <span class="badge bg-info">{{ stat.import_type|title }}</span>
+                                    </div>
+                                    <div class="flex-grow-1 mx-3">
+                                        <div class="progress">
+                                            <div class="progress-bar" role="progressbar" 
+                                                 style="width: {% widthratio stat.count stats.recent_imports 100 %}%">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <strong>{{ stat.count }}</strong>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            {% else %}
+                                <div class="text-center text-muted py-4">
+                                    <i class="fas fa-chart-bar fa-3x mb-3"></i>
+                                    <p>No import data available for the last 30 days.</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Status Breakdown -->
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Import Status (Last 30 Days)</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row text-center">
+                                <div class="col-4">
+                                    <div class="card bg-light">
+                                        <div class="card-body p-3">
+                                            <h4 class="text-success">{{ stats.successful_imports }}</h4>
+                                            <p class="card-text small mb-0">Completed</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="card bg-light">
+                                        <div class="card-body p-3">
+                                            <h4 class="text-danger">{{ stats.failed_imports }}</h4>
+                                            <p class="card-text small mb-0">Failed</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="card bg-light">
+                                        <div class="card-body p-3">
+                                            <h4 class="text-warning">{{ stats.partial_imports }}</h4>
+                                            <p class="card-text small mb-0">Partial</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Status Progress Bar -->
+                            <div class="mt-3">
+                                <div class="progress" style="height: 25px;">
+                                    {% if stats.recent_imports > 0 %}
+                                        <div class="progress-bar bg-success" role="progressbar" 
+                                             style="width: {% widthratio stats.successful_imports stats.recent_imports 100 %}%">
+                                            {% widthratio stats.successful_imports stats.recent_imports 100 %}%
+                                        </div>
+                                        <div class="progress-bar bg-warning" role="progressbar" 
+                                             style="width: {% widthratio stats.partial_imports stats.recent_imports 100 %}%">
+                                            {% widthratio stats.partial_imports stats.recent_imports 100 %}%
+                                        </div>
+                                        <div class="progress-bar bg-danger" role="progressbar" 
+                                             style="width: {% widthratio stats.failed_imports stats.recent_imports 100 %}%">
+                                            {% widthratio stats.failed_imports stats.recent_imports 100 %}%
+                                        </div>
+                                    {% else %}
+                                        <div class="progress-bar bg-secondary" role="progressbar" style="width: 100%">
+                                            No data
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Recent Import Results -->
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="card-title mb-0">Recent Import Results</h5>
+                            <a href="{% url 'configurations:import_results_list' %}" class="btn btn-sm btn-outline-primary">
+                                View All
+                            </a>
+                        </div>
+                        <div class="card-body">
+                            {% if recent_results %}
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Type</th>
+                                            <th>File</th>
+                                            <th>User</th>
+                                            <th>Status</th>
+                                            <th>Success Rate</th>
+                                            <th>Date</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for result in recent_results %}
+                                        <tr>
+                                            <td>
+                                                <span class="badge bg-info">{{ result.get_import_type_display }}</span>
+                                            </td>
+                                            <td>{{ result.original_filename }}</td>
+                                            <td>{{ result.user.get_full_name|default:result.user.username }}</td>
+                                            <td>
+                                                {% if result.status == 'completed' %}
+                                                    <span class="badge bg-success">{{ result.get_status_display }}</span>
+                                                {% elif result.status == 'failed' %}
+                                                    <span class="badge bg-danger">{{ result.get_status_display }}</span>
+                                                {% elif result.status == 'partial' %}
+                                                    <span class="badge bg-warning">{{ result.get_status_display }}</span>
+                                                {% elif result.status == 'processing' %}
+                                                    <span class="badge bg-primary">{{ result.get_status_display }}</span>
+                                                {% else %}
+                                                    <span class="badge bg-secondary">{{ result.get_status_display }}</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <div class="progress me-2" style="width: 60px; height: 8px;">
+                                                        <div class="progress-bar bg-success" role="progressbar" 
+                                                             style="width: {{ result.success_rate }}%"></div>
+                                                    </div>
+                                                    <span class="small">{{ result.success_rate }}%</span>
+                                                </div>
+                                            </td>
+                                            <td>{{ result.created_at|date:"M d, H:i" }}</td>
+                                            <td>
+                                                <a href="{% url 'configurations:import_result_detail' result.id %}" 
+                                                   class="btn btn-sm btn-outline-primary">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            {% else %}
+                            <div class="text-center text-muted py-4">
+                                <i class="fas fa-inbox fa-3x mb-3"></i>
+                                <p>No recent import results found.</p>
+                                <p class="small">Import results will appear here after you perform data imports.</p>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -44,3 +44,31 @@ class ServiceProviderImportForm(ImportForm):
         initial=True,
         label="Check for existing providers"
     )
+
+
+class ClaimImportForm(ImportForm):
+    validate_transaction_numbers = forms.BooleanField(
+        required=False,
+        initial=True,
+        label="Validate transaction number format"
+    )
+    auto_generate_missing = forms.BooleanField(
+        required=False,
+        initial=False,
+        label="Auto-generate missing transaction numbers"
+    )
+    skip_duplicates = forms.BooleanField(
+        required=False,
+        initial=True,
+        label="Skip duplicate transaction numbers"
+    )
+    validate_beneficiaries = forms.BooleanField(
+        required=False,
+        initial=True,
+        label="Validate beneficiary membership numbers"
+    )
+    validate_providers = forms.BooleanField(
+        required=False,
+        initial=True,
+        label="Validate provider AFHOZ numbers"
+    )

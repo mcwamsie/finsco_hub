@@ -1,221 +1,246 @@
 {% extends 'layouts/core/base.html' %}
 {% load static %}
 
-{% block title %}Dashboard{% endblock %}
+{% block title %}{{ page_title }}{% endblock %}
 
 {% block content %}
 <div class="flex-1">
-            <div class="bg-gray-50 px-6 py-3 border-b flex items-center justify-between">
-                <div class="flex items-center space-x-4">
-                    <div class="flex items-center space-x-1">
-                        <span class="font-medium">Table 1</span>
-                        <i class="bi bi-chevron-down text-sm text-gray-500"></i>
-                    </div>
-                    <i class="bi bi-chevron-down text-sm text-gray-500"></i>
-                    <button class="flex items-center space-x-2 text-sm text-gray-600 hover:text-gray-800">
-                        <i class="bi bi-plus"></i>
-                        <span>Add or import</span>
-                    </button>
-                </div>
-                <div class="flex items-center space-x-6 text-sm">
-                    <span>Extensions</span>
-                    <span>Tools</span>
-                    <i class="bi bi-chevron-down text-gray-500"></i>
-                </div>
+    <!-- Header -->
+    <div class="bg-white border-b border-gray-200 px-6 py-4">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+                <nav class="flex" aria-label="Breadcrumb">
+                    <ol class="inline-flex items-center space-x-1 md:space-x-3">
+                        {% for breadcrumb in breadcrumbs %}
+                            {% if breadcrumb.active %}
+                                <li class="inline-flex items-center">
+                                    <span class="text-sm font-medium text-gray-500">{{ breadcrumb.name }}</span>
+                                </li>
+                            {% else %}
+                                <li class="inline-flex items-center">
+                                    <a href="{{ breadcrumb.url }}"
+                                       class="inline-flex items-center text-sm font-medium text-gray-700 hover:text-blue-600">
+                                        <i class="bi bi-house-door mr-2"></i>
+                                        {{ breadcrumb.name }}
+                                    </a>
+                                </li>
+                                <li aria-current="page">
+                                    <div class="flex items-center">
+                                        <i class="bi bi-chevron-right text-gray-400"></i>
+                                    </div>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+                    </ol>
+                </nav>
+                <h1 class="mt-2 text-2xl font-bold text-gray-900">{{ page_title }}</h1>
+                <p class="mt-1 text-sm text-gray-500">Comprehensive overview of your enterprise operations</p>
             </div>
-
-            <!-- Toolbar -->
-            <div class="bg-white px-6 py-3 border-b flex items-center justify-between">
-                <div class="flex items-center space-x-4">
-                    <button class="flex items-center space-x-2 text-sm text-gray-600 hover:text-gray-800">
-                        <i class="bi bi-grid-3x3-gap"></i>
-                        <span>Grid view</span>
-                        <i class="bi bi-chevron-down"></i>
-                    </button>
-                    <button class="flex items-center space-x-2 text-sm text-gray-600 hover:text-gray-800">
-                        <i class="bi bi-eye-slash"></i>
-                        <span>Hide fields</span>
-                    </button>
-                    <button class="flex items-center space-x-2 text-sm text-gray-600 hover:text-gray-800">
-                        <i class="bi bi-funnel"></i>
-                        <span>Filter</span>
-                    </button>
-                    <button class="flex items-center space-x-2 text-sm text-gray-600 hover:text-gray-800">
-                        <i class="bi bi-collection"></i>
-                        <span>Group</span>
-                    </button>
-                    <button class="flex items-center space-x-2 text-sm text-gray-600 hover:text-gray-800">
-                        <i class="bi bi-arrow-up-down"></i>
-                        <span>Sort</span>
-                    </button>
-                    <button class="flex items-center space-x-2 text-sm text-gray-600 hover:text-gray-800">
-                        <i class="bi bi-palette"></i>
-                        <span>Color</span>
-                    </button>
-                    <button class="text-gray-400 hover:text-gray-600">
-                        <i class="bi bi-three-dots-vertical"></i>
-                    </button>
-                </div>
-                <button class="flex items-center space-x-2 text-sm text-gray-600 hover:text-gray-800">
-                    <i class="bi bi-share"></i>
-                    <span>Share and sync</span>
+            <div class="flex items-center space-x-3">
+                <a href="{% url 'membership:dashboard' %}"
+                   class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-sm shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    <i class="bi bi-people mr-2"></i>
+                    Membership
+                </a>
+                <a href="{% url 'services:dashboard' %}"
+                   class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-sm shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    <i class="bi bi-gear mr-2"></i>
+                    Services
+                </a>
+                <button class="inline-flex items-center px-4 py-2 border border-transparent rounded-sm shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    <i class="bi bi-plus mr-2"></i>
+                    Quick Actions
                 </button>
             </div>
+        </div>
+    </div>
 
-            <!-- Table -->
-            <div class="overflow-auto scrollbar-thin">
-                <table class="w-full">
-                    <thead class="bg-gray-50 border-b">
-                    <tr>
-                        <th class="w-12 p-3 text-left border-r">#</th>
-                        <th class="min-w-48 p-3 text-left border-r">
-                            <div class="flex items-center space-x-2">
-                                <i class="bi bi-person text-gray-400"></i>
-                                <span class="text-sm font-medium">user</span>
-                                <i class="bi bi-chevron-down text-gray-400"></i>
-                            </div>
-                        </th>
-                        <th class="min-w-48 p-3 text-left border-r">
-                            <div class="flex items-center space-x-2">
-                                <i class="bi bi-circle text-gray-400"></i>
-                                <span class="text-sm font-medium">Feedback Type</span>
-                                <i class="bi bi-chevron-down text-gray-400"></i>
-                            </div>
-                        </th>
-                        <th class="min-w-64 p-3 text-left border-r">
-                            <div class="flex items-center space-x-2">
-                                <i class="bi bi-person text-gray-400"></i>
-                                <span class="text-sm font-medium">Description</span>
-                                <i class="bi bi-chevron-down text-gray-400"></i>
-                            </div>
-                        </th>
-                        <th class="min-w-48 p-3 text-left">
-                            <div class="flex items-center space-x-2">
-                                <i class="bi bi-circle text-gray-400"></i>
-                                <span class="text-sm font-medium">Channel</span>
-                                <i class="bi bi-chevron-down text-gray-400"></i>
-                            </div>
-                        </th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr class="border-b hover:bg-gray-50">
-                        <td class="p-3 text-sm text-gray-500 border-r">1</td>
-                        <td class="p-3 border-r"></td>
-                        <td class="p-3 border-r"></td>
-                        <td class="p-3 border-r"></td>
-                        <td class="p-3"></td>
-                    </tr>
-                    <tr class="border-b hover:bg-gray-50">
-                        <td class="p-3 text-sm text-gray-500 border-r">2</td>
-                        <td class="p-3 border-r"></td>
-                        <td class="p-3 border-r"></td>
-                        <td class="p-3 border-r"></td>
-                        <td class="p-3"></td>
-                    </tr>
-                    <tr class="border-b hover:bg-gray-50">
-                        <td class="p-3 text-sm text-gray-500 border-r">3</td>
-                        <td class="p-3 border-r"></td>
-                        <td class="p-3 border-r"></td>
-                        <td class="p-3 border-r"></td>
-                        <td class="p-3"></td>
-                    </tr>
-                    <tr class="border-b hover:bg-gray-50">
-                        <td class="p-3 text-sm text-gray-500 border-r">4</td>
-                        <td class="p-3 border-r"></td>
-                        <td class="p-3 border-r"></td>
-                        <td class="p-3 border-r"></td>
-                        <td class="p-3"></td>
-                    </tr>
-                    <tr class="border-b hover:bg-gray-50">
-                        <td class="p-3 text-sm text-gray-500 border-r">5</td>
-                        <td class="p-3 border-r"></td>
-                        <td class="p-3 border-r"></td>
-                        <td class="p-3 border-r"></td>
-                        <td class="p-3"></td>
-                    </tr>
-                    <tr class="border-b hover:bg-gray-50">
-                        <td class="p-3 text-sm text-gray-500 border-r">6</td>
-                        <td class="p-3 border-r"></td>
-                        <td class="p-3 border-r"></td>
-                        <td class="p-3 border-r"></td>
-                        <td class="p-3"></td>
-                    </tr>
-                    <tr class="border-b hover:bg-gray-50">
-                        <td class="p-3 text-sm text-gray-500 border-r">7</td>
-                        <td class="p-3 border-r"></td>
-                        <td class="p-3 border-r"></td>
-                        <td class="p-3 border-r"></td>
-                        <td class="p-3"></td>
-                    </tr>
-                    <tr class="border-b hover:bg-gray-50">
-                        <td class="p-3 text-sm text-gray-500 border-r">8</td>
-                        <td class="p-3 border-r"></td>
-                        <td class="p-3 border-r"></td>
-                        <td class="p-3 border-r"></td>
-                        <td class="p-3"></td>
-                    </tr>
-                    <tr class="border-b hover:bg-gray-50">
-                        <td class="p-3 text-sm text-gray-500 border-r">9</td>
-                        <td class="p-3 border-r"></td>
-                        <td class="p-3 border-r"></td>
-                        <td class="p-3 border-r"></td>
-                        <td class="p-3"></td>
-                    </tr>
-                    <tr class="border-b hover:bg-gray-50">
-                        <td class="p-3 text-sm text-gray-500 border-r">10</td>
-                        <td class="p-3 border-r"></td>
-                        <td class="p-3 border-r"></td>
-                        <td class="p-3 border-r"></td>
-                        <td class="p-3"></td>
-                    </tr>
-                    <tr class="hover:bg-gray-50">
-                        <td class="p-3 text-center border-r">
-                            <i class="bi bi-plus text-gray-400 hover:text-gray-600 cursor-pointer"></i>
-                        </td>
-                        <td class="p-3 border-r"></td>
-                        <td class="p-3 border-r"></td>
-                        <td class="p-3 border-r"></td>
-                        <td class="p-3"></td>
-                    </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <!-- Footer -->
-            <div class="bg-white border-t px-6 py-3 flex items-center justify-between">
-                <div class="flex items-center space-x-4">
-                    <div class="text-sm text-gray-500">11 records</div>
-                    <div class="flex items-center space-x-2">
-                        <span class="text-sm text-gray-500">Filled</span>
-                        <div class="flex items-center space-x-1">
-                            <span class="text-sm">1</span>
-                            <i class="bi bi-chevron-down text-sm text-gray-400"></i>
-                        </div>
+    <!-- Dashboard Stats -->
+    <div class="bg-white px-4 py-4 border-b">
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4">
+            <div class="bg-blue-50 p-4 rounded-lg">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-blue-600 font-medium">Total Members</p>
+                        <p class="text-2xl font-bold text-blue-800">{{ total_members|floatformat:0 }}</p>
                     </div>
-                    <div class="flex items-center space-x-2">
-                        <span class="text-sm text-gray-500">Filled</span>
-                        <div class="flex items-center space-x-1">
-                            <span class="text-sm">1</span>
-                            <i class="bi bi-chevron-down text-sm text-gray-400"></i>
-                        </div>
-                    </div>
+                    <i class="bi bi-people text-blue-600 text-2xl"></i>
+                </div>
+                <div class="mt-2">
+                    <span class="text-xs text-blue-600">+{{ new_members_30d }} this month</span>
                 </div>
             </div>
-
-            <!-- Bottom Notification -->
-            <div class="bg-blue-50 border-t border-blue-200 px-6 py-3">
+            <div class="bg-green-50 p-4 rounded-lg">
                 <div class="flex items-center justify-between">
-                    <div class="flex items-center space-x-3">
-                        <i class="bi bi-grid-3x3-gap text-blue-600"></i>
-                        <span class="text-sm text-blue-800">It looks like you are managing data in Airtable. Would you like assistance with organizing this information?</span>
+                    <div>
+                        <p class="text-sm text-green-600 font-medium">Total Balance</p>
+                        <p class="text-2xl font-bold text-green-800">${{ total_balance|floatformat:0 }}</p>
                     </div>
-                    <i class="bi bi-x text-blue-600 hover:text-blue-800 cursor-pointer"></i>
+                    <i class="bi bi-bank text-green-600 text-2xl"></i>
+                </div>
+                <div class="mt-2">
+                    <span class="text-xs text-green-600">Avg: ${{ avg_member_balance|floatformat:2 }}</span>
+                </div>
+            </div>
+            <div class="bg-red-50 p-4 rounded-lg">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-red-600 font-medium">Total Claims</p>
+                        <p class="text-2xl font-bold text-red-800">{{ total_claims|floatformat:0 }}</p>
+                    </div>
+                    <i class="bi bi-file-medical text-red-600 text-2xl"></i>
+                </div>
+                <div class="mt-2">
+                    <span class="text-xs text-red-600">{{ claims_approval_rate }}% approval rate</span>
+                </div>
+            </div>
+            <div class="bg-purple-50 p-4 rounded-lg">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-purple-600 font-medium">Total Top-ups</p>
+                        <p class="text-2xl font-bold text-purple-800">${{ total_topups|floatformat:0 }}</p>
+                    </div>
+                    <i class="bi bi-credit-card text-purple-600 text-2xl"></i>
+                </div>
+                <div class="mt-2">
+                    <span class="text-xs text-purple-600">Active funding</span>
+                </div>
+            </div>
+            <div class="bg-orange-50 p-4 rounded-lg">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-orange-600 font-medium">Service Requests</p>
+                        <p class="text-2xl font-bold text-orange-800">{{ total_service_requests|floatformat:0 }}</p>
+                    </div>
+                    <i class="bi bi-clipboard-check text-orange-600 text-2xl"></i>
+                </div>
+                <div class="mt-2">
+                    <span class="text-xs text-orange-600">{{ request_completion_rate }}% completed</span>
                 </div>
             </div>
         </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="bg-white border-t px-6 py-4">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Recent Members -->
+            <div>
+                <h3 class="text-lg font-semibold mb-4">Recent Members</h3>
+                <div class="space-y-3">
+                    {% for member in recent_members %}
+                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                                <i class="bi bi-person text-blue-600"></i>
+                            </div>
+                            <div>
+                                <p class="font-medium">{{ member.first_name }} {{ member.last_name }}</p>
+                                <p class="text-sm text-gray-500">{{ member.type|title }}</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-xs text-gray-500">{{ member.date_joined|date:"M d, Y" }}</span>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-gray-500 text-center py-4">No recent members</p>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Recent Top-ups -->
+            <div>
+                <h3 class="text-lg font-semibold mb-4">Recent Top-ups</h3>
+                <div class="space-y-3">
+                    {% for topup in recent_topups %}
+                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                                <i class="bi bi-arrow-up text-green-600"></i>
+                            </div>
+                            <div>
+                                <p class="font-medium">{{ topup.member.first_name }} {{ topup.member.last_name }}</p>
+                                <p class="text-sm text-gray-500">${{ topup.amount|floatformat:2 }}</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-xs text-gray-500">{{ topup.completed_date|date:"M d, Y" }}</span>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-gray-500 text-center py-4">No recent top-ups</p>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <!-- Recent Claims -->
+            <div>
+                <h3 class="text-lg font-semibold mb-4">Recent Claims</h3>
+                <div class="space-y-3">
+                    {% for claim in recent_claims %}
+                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
+                                <i class="bi bi-file-medical text-red-600"></i>
+                            </div>
+                            <div>
+                                <p class="font-medium">{{ claim.beneficiary.first_name }} {{ claim.beneficiary.last_name }}</p>
+                                <p class="text-sm text-gray-500">${{ claim.claimed_amount|floatformat:2 }}</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-xs text-gray-500">{{ claim.created_at|date:"M d, Y" }}</span>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-gray-500 text-center py-4">No recent claims</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- System Health Status -->
+    <div class="bg-white border-t px-6 py-4">
+        <div class="bg-gray-50 rounded-lg p-4">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold">System Health</h3>
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {% if system_health.system_status == 'healthy' %}bg-green-100 text-green-800{% else %}bg-yellow-100 text-yellow-800{% endif %}">
+                    <i class="bi bi-circle-fill mr-1" style="font-size: 0.5rem;"></i>
+                    {{ system_health.system_status|title }}
+                </span>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="text-center">
+                    <div class="text-2xl font-bold text-green-600">{{ system_health.topup_success_rate }}%</div>
+                    <div class="text-sm text-gray-600">Top-up Success Rate</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-2xl font-bold text-blue-600">{{ claims_approval_rate }}%</div>
+                    <div class="text-sm text-gray-600">Claims Approval Rate</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-2xl font-bold text-purple-600">{{ request_completion_rate }}%</div>
+                    <div class="text-sm text-gray-600">Request Completion Rate</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Notification -->
+    <div class="bg-blue-50 border-t border-blue-200 px-6 py-3">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <i class="bi bi-grid-3x3-gap text-blue-600"></i>
+                <span class="text-sm text-blue-800">Enterprise dashboard overview. Monitor all operations and performance metrics.</span>
+            </div>
+            <i class="bi bi-x text-blue-600 hover:text-blue-800 cursor-pointer"></i>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block sidebar %}
-	{% include 'layouts/core/sidebar/dashboard.html' %}
+    {% include 'layouts/core/sidebar/dashboard.html' %}
 {% endblock %}

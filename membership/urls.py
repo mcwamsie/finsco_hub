@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+from .views import MemberImportView, MemberSampleTemplate
 
 app_name = 'membership'
 
@@ -14,12 +15,20 @@ urlpatterns = [
 
     path('members/details/<str:membership_number>/', views.MemberDetailView.as_view(), name='members_detail'),
     path('members/update/<str:membership_number>/update/', views.MemberUpdateView.as_view(), name='members_update'),
-    
+
+    path('members/import/', MemberImportView.as_view(), name='members_import'),
+    path('members/export/', views.members_export, name='members_export'),
+    path('members/sample-template/', MemberSampleTemplate.as_view(), name='members_sample_template'),
+
     # HTMX endpoints
     path('htmx/member-search/', views.member_search_suggestions, name='member_search_suggestions'),
     path('htmx/member-stats/', views.member_quick_stats, name='member_quick_stats'),
     path('htmx/member/<str:membership_number>/toggle-status/', views.toggle_member_status, name='toggle_member_status'),
     
+    # Import/Export endpoints
+
+    path('members/export-process/', views.members_export_process, name='members_export_process'),
+
     # Beneficiary URLs
     path('beneficiaries/', views.BeneficiaryTemplateView.as_view(), name='beneficiaries'),
     path('beneficiaries/list/', views.BeneficiaryListView.as_view(), name='beneficiaries_list'),

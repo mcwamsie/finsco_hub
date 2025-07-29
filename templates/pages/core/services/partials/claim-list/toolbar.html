@@ -3,18 +3,40 @@
 <!-- Toolbar -->
 <div class="bg-white px-4 py-3 border-b flex items-center justify-between">
     <div class="flex items-center gap-4 divide-x divide-gray-400">
-        <button
-                hx-get="{% url 'services:claim_create' %}"
+        <div class="flex items-center space-x-2">
+            <button
+                hx-get="{% url 'services:claims_create' %}"
                 hx-target="#new-claim-modal-container"
                 hx-trigger="click"
                 onclick="new_modal.show()"
                 hx-indicator="#new-claim-modal-overlay"
                 class="flex items-center space-x-2 text-sm text-gray-600 hover:text-gray-800">
-            <i class="bi bi-plus h-4 w-4"></i>
-            <span>New Claim</span>
-        </button>
+                <i class="bi bi-plus h-4 w-4"></i>
+                <span>New Claim</span>
+            </button>
+            <button
+                hx-get="{% url 'services:claims_import' %}"
+                hx-target="#import-modal-container"
+                hx-trigger="click"
+                onclick="import_modal.show()"
+                hx-indicator="#import-modal-overlay"
+                class="flex items-center space-x-2 text-sm text-blue-600 hover:text-blue-800">
+                <i class="bi bi-upload h-4 w-4"></i>
+                <span>Import</span>
+            </button>
+            <button
+                hx-get="{% url 'services:claims_export' %}"
+                hx-target="#export-modal-container"
+                hx-trigger="click"
+                onclick="export_modal.show()"
+                hx-indicator="#export-modal-overlay"
+                class="flex items-center space-x-2 text-sm text-green-600 hover:text-green-800">
+                <i class="bi bi-download h-4 w-4"></i>
+                <span>Export</span>
+            </button>
+        </div>
         <button class="flex items-center space-x-2 pl-4 text-sm text-gray-600 hover:text-gray-800">
-            <i class="bi bi-clock-history"></i>
+            <i class="bi bi-file-earmark-medical"></i>
             <span>Pending Claims</span>
         </button>
     </div>

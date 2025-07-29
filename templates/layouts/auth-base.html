@@ -17,7 +17,7 @@
 
     <!-- HTMX -->
     <script src="https://unpkg.com/htmx.org@1.9.10"></script>
-    
+
     <!-- Notyf CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css">
 
@@ -55,11 +55,11 @@
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    {#6?KgJ#3DC#7CV6t#}
     <style>
         body {
-            font-family: 'Inter', sans-serif;
+            font-family: 'Nunito', sans-serif;
         }
 
         .auth-gradient {
@@ -169,10 +169,10 @@
             <!-- Logo -->
             <div class="flex items-center mb-8">
                 <div class="flex items-center space-x-4">
-{#                    <div class="w-8 h-8 bg-black rounded-lg flex items-center justify-center">#}
-{#                        <div class="w-4 h-4 bg-white rounded-sm"></div>#}
-{#                    </div>#}
-{#                    #}
+                    {#                    <div class="w-8 h-8 bg-black rounded-lg flex items-center justify-center">#}
+                    {#                        <div class="w-4 h-4 bg-white rounded-sm"></div>#}
+                    {#                    </div>#}
+                    {#                    #}
                     <img class="w-20 h-20" src="{% static 'img/logo-icon.png' %}" alt="8D Logo">
                     <span class="text-xl font-semibold text-gray-900">{{ app_name }}</span>
                 </div>
@@ -346,170 +346,97 @@
     </div>
 </div>
 
-
+{% include "layouts/messages.html" %}
 <!-- Flowbite JS -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.js"></script>
-
-<!-- Notyf JS -->
-<script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
-
 <script>
-// Initialize Notyf
-const notyf = new Notyf({
-    duration: 4000,
-    position: {
-        x: 'right',
-        y: 'top',
-    },
-    types: [
-        {
-            type: 'warning',
-            background: 'orange',
-            icon: {
-                className: 'bi bi-exclamation-triangle',
-                tagName: 'i',
-                text: ''
+    // Initialize Flowbite carousel
+    document.addEventListener('DOMContentLoaded', function () {
+        // Auto-advance carousel every 5 seconds
+        setInterval(function () {
+            const nextButton = document.querySelector('[data-carousel-next]');
+            if (nextButton) {
+                nextButton.click();
             }
-        },
-        {
-            type: 'info',
-            background: 'blue',
-            icon: {
-                className: 'bi bi-info-circle',
-                tagName: 'i',
-                text: ''
-            }
-        }
-    ]
-});
+        }, 100000);
 
-// Django Messages Integration
-{% if messages %}
-    {% for message in messages %}
-        {% if message.tags == 'error' %}
-            notyf.error('{{ message|escapejs }}');
-        {% elif message.tags == 'warning' %}
-            notyf.open({
-                type: 'warning',
-                message: '{{ message|escapejs }}'
-            });
-        {% elif message.tags == 'info' %}
-            notyf.open({
-                type: 'info',
-                message: '{{ message|escapejs }}'
-            });
-        {% elif message.tags == 'success' %}
-            notyf.success('{{ message|escapejs }}');
-        {% else %}
-            notyf.success('{{ message|escapejs }}');
-        {% endif %}
-    {% endfor %}
-{% endif %}
+        const is_informed = localStorage.getItem('is_informed');
 
-// Global notification functions for JavaScript usage
-window.showNotification = {
-    success: function(message) {
-        notyf.success(message);
-    },
-    error: function(message) {
-        notyf.error(message);
-    },
-    warning: function(message) {
-        notyf.open({
-            type: 'warning',
-            message: message
-        });
-    },
-    info: function(message) {
-        notyf.open({
-            type: 'info',
-            message: message
-        });
-    }
-};
+        // Modal functionality
+        const modal = document.getElementById('permission-modal');
+        const closeModal = document.getElementById('close-modal');
+        const cancelBtn = document.getElementById('cancel-btn');
+        const allowBtn = document.getElementById('allow-btn');
 
-// HTMX integration for notifications
-document.body.addEventListener('htmx:afterRequest', function(evt) {
-    // Check for notification headers from server
-    const response = evt.detail.xhr;
-    
-    if (response.getResponseHeader('HX-Trigger')) {
-        const triggers = JSON.parse(response.getResponseHeader('HX-Trigger'));
-        
-        if (triggers.notification) {
-            const notification = triggers.notification;
-            window.showNotification[notification.type](notification.message);
-        }
-    }
-});
+        if (!is_informed) {
 
-// Handle HTMX errors
-document.body.addEventListener('htmx:responseError', function(evt) {
-    window.showNotification.error('An error occurred. Please try again.');
-});
+            // Show modal after 3 seconds (for demo purposes)
+            setTimeout(() => {
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            }, 3000);
 
-document.body.addEventListener('htmx:sendError', function(evt) {
-    window.showNotification.error('Network error. Please check your connection.');
-});
-</script>
-
-    <script>
-        // Initialize Flowbite carousel
-        document.addEventListener('DOMContentLoaded', function () {
-            // Auto-advance carousel every 5 seconds
-            setInterval(function () {
-                const nextButton = document.querySelector('[data-carousel-next]');
-                if (nextButton) {
-                    nextButton.click();
-                }
-            }, 100000);
-
-            const is_informed = localStorage.getItem('is_informed');
-
-            // Modal functionality
-            const modal = document.getElementById('permission-modal');
-            const closeModal = document.getElementById('close-modal');
-            const cancelBtn = document.getElementById('cancel-btn');
-            const allowBtn = document.getElementById('allow-btn');
-
-            if (!is_informed) {
-
-                // Show modal after 3 seconds (for demo purposes)
-                setTimeout(() => {
-                    modal.classList.remove('hidden');
-                    modal.classList.add('flex');
-                }, 3000);
-
-                // Close modal handlers
-                [closeModal, cancelBtn].forEach(btn => {
-                    btn.addEventListener('click', () => {
-                        modal.classList.add('hidden');
-                        modal.classList.remove('flex');
-                    });
-                });
-
-                // Allow access handler
-                allowBtn.addEventListener('click', () => {
+            // Close modal handlers
+            [closeModal, cancelBtn].forEach(btn => {
+                btn.addEventListener('click', () => {
                     modal.classList.add('hidden');
                     modal.classList.remove('flex');
-                    // Add your integration logic here
                 });
-                modal.addEventListener('click', (e) => {
-                    if (e.target === modal) {
-                        modal.classList.add('hidden');
-                        modal.classList.remove('flex');
-                    }
-                });
+            });
 
-                localStorage.setItem('is_informed', 'true');
-            }
+            // Allow access handler
+            allowBtn.addEventListener('click', () => {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+                // Add your integration logic here
+            });
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.classList.add('hidden');
+                    modal.classList.remove('flex');
+                }
+            });
+
+            localStorage.setItem('is_informed', 'true');
+        }
 
 
-            // Close modal when clicking outside
+        // Close modal when clicking outside
 
+    });
+
+    document.body.addEventListener('htmx:beforeRequest', function (evt) {
+        const form = evt.target;
+        const submitBtn = form.querySelector('.submit-btn');
+        const inputs = form.querySelectorAll('input, select, textarea');
+
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.querySelector('.btn-text').classList.add('hidden');
+            submitBtn.querySelector('.btn-loading').classList.remove('hidden');
+        }
+
+        inputs.forEach(input => {
+            input.disabled = true;
         });
-    </script>
+    });
 
+    document.body.addEventListener('htmx:afterRequest', function (evt) {
+        const form = evt.target;
+        const submitBtn = form.querySelector('.submit-btn');
+        const inputs = form.querySelectorAll('input, select, textarea');
+
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.querySelector('.btn-text').classList.remove('hidden');
+            submitBtn.querySelector('.btn-loading').classList.add('hidden');
+        }
+
+        inputs.forEach(input => {
+            input.disabled = false;
+        });
+    });
+</script>
 {% block scripts %}
 {% endblock %}
 </body>

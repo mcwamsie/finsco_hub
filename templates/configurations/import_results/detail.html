@@ -1,0 +1,375 @@
+{% extends 'layouts/base.html' %}
+{% load static %}
+
+{% block title %}Import Result Details{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2>Import Result Details</h2>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="{% url 'configurations:import_results_list' %}">Import Results</a></li>
+                            <li class="breadcrumb-item active">{{ result.original_filename }}</li>
+                        </ol>
+                    </nav>
+                </div>
+                <div>
+                    <a href="{% url 'configurations:import_results_list' %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Back to List
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Summary Card -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h4 class="card-title mb-0">Import Summary</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td class="fw-bold">Import Type:</td>
+                                    <td><span class="badge bg-info">{{ result.get_import_type_display }}</span></td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-bold">Status:</td>
+                                    <td>
+                                        {% if result.status == 'completed' %}
+                                            <span class="badge bg-success">{{ result.get_status_display }}</span>
+                                        {% elif result.status == 'failed' %}
+                                            <span class="badge bg-danger">{{ result.get_status_display }}</span>
+                                        {% elif result.status == 'partial' %}
+                                            <span class="badge bg-warning">{{ result.get_status_display }}</span>
+                                        {% elif result.status == 'processing' %}
+                                            <span class="badge bg-primary">{{ result.get_status_display }}</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">{{ result.get_status_display }}</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-bold">File:</td>
+                                    <td>{{ result.original_filename }} ({{ result.file_format|upper }}, {{ result.file_size|filesizeformat }})</td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-bold">Imported By:</td>
+                                    <td>{{ result.user.get_full_name|default:result.user.username }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-bold">Started:</td>
+                                    <td>{{ result.started_at|date:"M d, Y H:i" }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-bold">Completed:</td>
+                                    <td>
+                                        {% if result.completed_at %}
+                                            {{ result.completed_at|date:"M d, Y H:i" }}
+                                            {% if result.duration %}
+                                                <small class="text-muted">({{ result.duration }})</small>
+                                            {% endif %}
+                                        {% else %}
+                                            <span class="text-muted">Not completed</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <!-- Statistics -->
+                            <div class="row text-center">
+                                <div class="col-6 col-md-3">
+                                    <div class="card bg-light">
+                                        <div class="card-body p-3">
+                                            <h5 class="card-title text-primary">{{ result.total_rows }}</h5>
+                                            <p class="card-text small">Total Rows</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-3">
+                                    <div class="card bg-light">
+                                        <div class="card-body p-3">
+                                            <h5 class="card-title text-success">{{ result.successful_rows }}</h5>
+                                            <p class="card-text small">Successful</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-3">
+                                    <div class="card bg-light">
+                                        <div class="card-body p-3">
+                                            <h5 class="card-title text-danger">{{ result.failed_rows }}</h5>
+                                            <p class="card-text small">Failed</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-3">
+                                    <div class="card bg-light">
+                                        <div class="card-body p-3">
+                                            <h5 class="card-title text-info">{{ result.success_rate }}%</h5>
+                                            <p class="card-text small">Success Rate</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Progress Bar -->
+                            <div class="mt-3">
+                                <div class="progress" style="height: 20px;">
+                                    <div class="progress-bar bg-success" role="progressbar" 
+                                         style="width: {{ result.success_rate }}%">
+                                        {{ result.successful_rows }} successful
+                                    </div>
+                                    {% if result.failed_rows > 0 %}
+                                    <div class="progress-bar bg-danger" role="progressbar" 
+                                         style="width: {% widthratio result.failed_rows result.total_rows 100 %}%">
+                                        {{ result.failed_rows }} failed
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {% if result.summary %}
+                    <div class="mt-3">
+                        <h6>Summary:</h6>
+                        <p class="text-muted">{{ result.summary }}</p>
+                    </div>
+                    {% endif %}
+                    
+                    {% if result.notes %}
+                    <div class="mt-3">
+                        <h6>Notes:</h6>
+                        <p class="text-muted">{{ result.notes }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Error Statistics -->
+            {% if error_stats %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Error Statistics</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% for stat in error_stats %}
+                        <div class="col-md-3 mb-3">
+                            <div class="card bg-light">
+                                <div class="card-body text-center">
+                                    <h6 class="card-title">{{ stat.error_type|title }}</h6>
+                                    <h4 class="text-danger">{{ stat.count }}</h4>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Tabs for Errors and Successes -->
+            <div class="card">
+                <div class="card-header">
+                    <ul class="nav nav-tabs card-header-tabs" id="resultTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link {% if show_errors %}active{% endif %}" 
+                                    id="errors-tab" data-bs-toggle="tab" data-bs-target="#errors" 
+                                    type="button" role="tab">
+                                Errors ({{ result.failed_rows }})
+                                {% if result.has_errors %}
+                                    <a href="{% url 'configurations:import_result_errors_export' result.id %}" 
+                                       class="btn btn-sm btn-outline-warning ms-2" title="Export Errors">
+                                        <i class="fas fa-download"></i>
+                                    </a>
+                                {% endif %}
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link {% if not show_errors %}active{% endif %}" 
+                                    id="successes-tab" data-bs-toggle="tab" data-bs-target="#successes" 
+                                    type="button" role="tab">
+                                Successes ({{ result.successful_rows }})
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+                <div class="card-body">
+                    <div class="tab-content" id="resultTabsContent">
+                        <!-- Errors Tab -->
+                        <div class="tab-pane fade {% if show_errors %}show active{% endif %}" 
+                             id="errors" role="tabpanel">
+                            {% if error_page_obj %}
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Row</th>
+                                            <th>Error Type</th>
+                                            <th>Field</th>
+                                            <th>Message</th>
+                                            <th>Row Data</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for error in error_page_obj %}
+                                        <tr>
+                                            <td>{{ error.row_number }}</td>
+                                            <td>
+                                                <span class="badge bg-danger">{{ error.get_error_type_display }}</span>
+                                            </td>
+                                            <td>{{ error.field_name|default:"-" }}</td>
+                                            <td>{{ error.error_message }}</td>
+                                            <td>
+                                                {% if error.row_data %}
+                                                    <button class="btn btn-sm btn-outline-info" 
+                                                            data-bs-toggle="collapse" 
+                                                            data-bs-target="#rowData{{ error.id }}">
+                                                        View Data
+                                                    </button>
+                                                    <div class="collapse mt-2" id="rowData{{ error.id }}">
+                                                        <div class="card card-body">
+                                                            <pre class="small">{{ error.row_data|pprint }}</pre>
+                                                        </div>
+                                                    </div>
+                                                {% else %}
+                                                    <span class="text-muted">No data</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            <!-- Error Pagination -->
+                            {% if error_page_obj.has_other_pages %}
+                            <nav aria-label="Error pagination">
+                                <ul class="pagination justify-content-center">
+                                    {% if error_page_obj.has_previous %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?error_page={{ error_page_obj.previous_page_number }}">Previous</a>
+                                        </li>
+                                    {% endif %}
+                                    
+                                    {% for num in error_page_obj.paginator.page_range %}
+                                        {% if error_page_obj.number == num %}
+                                            <li class="page-item active">
+                                                <span class="page-link">{{ num }}</span>
+                                            </li>
+                                        {% elif num > error_page_obj.number|add:'-3' and num < error_page_obj.number|add:'3' %}
+                                            <li class="page-item">
+                                                <a class="page-link" href="?error_page={{ num }}">{{ num }}</a>
+                                            </li>
+                                        {% endif %}
+                                    {% endfor %}
+                                    
+                                    {% if error_page_obj.has_next %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?error_page={{ error_page_obj.next_page_number }}">Next</a>
+                                        </li>
+                                    {% endif %}
+                                </ul>
+                            </nav>
+                            {% endif %}
+                            {% else %}
+                            <div class="text-center py-4">
+                                <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                                <p class="text-muted">No errors found!</p>
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Successes Tab -->
+                        <div class="tab-pane fade {% if not show_errors %}show active{% endif %}" 
+                             id="successes" role="tabpanel">
+                            {% if success_page_obj %}
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Row</th>
+                                            <th>Object ID</th>
+                                            <th>Object</th>
+                                            <th>Row Data</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for success in success_page_obj %}
+                                        <tr>
+                                            <td>{{ success.row_number }}</td>
+                                            <td><code>{{ success.object_id }}</code></td>
+                                            <td>{{ success.object_repr }}</td>
+                                            <td>
+                                                {% if success.row_data %}
+                                                    <button class="btn btn-sm btn-outline-info" 
+                                                            data-bs-toggle="collapse" 
+                                                            data-bs-target="#successData{{ success.id }}">
+                                                        View Data
+                                                    </button>
+                                                    <div class="collapse mt-2" id="successData{{ success.id }}">
+                                                        <div class="card card-body">
+                                                            <pre class="small">{{ success.row_data|pprint }}</pre>
+                                                        </div>
+                                                    </div>
+                                                {% else %}
+                                                    <span class="text-muted">No data</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            <!-- Success Pagination -->
+                            {% if success_page_obj.has_other_pages %}
+                            <nav aria-label="Success pagination">
+                                <ul class="pagination justify-content-center">
+                                    {% if success_page_obj.has_previous %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?success_page={{ success_page_obj.previous_page_number }}&tab=successes">Previous</a>
+                                        </li>
+                                    {% endif %}
+                                    
+                                    {% for num in success_page_obj.paginator.page_range %}
+                                        {% if success_page_obj.number == num %}
+                                            <li class="page-item active">
+                                                <span class="page-link">{{ num }}</span>
+                                            </li>
+                                        {% elif num > success_page_obj.number|add:'-3' and num < success_page_obj.number|add:'3' %}
+                                            <li class="page-item">
+                                                <a class="page-link" href="?success_page={{ num }}&tab=successes">{{ num }}</a>
+                                            </li>
+                                        {% endif %}
+                                    {% endfor %}
+                                    
+                                    {% if success_page_obj.has_next %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?success_page={{ success_page_obj.next_page_number }}&tab=successes">Next</a>
+                                        </li>
+                                    {% endif %}
+                                </ul>
+                            </nav>
+                            {% endif %}
+                            {% else %}
+                            <div class="text-center py-4">
+                                <i class="fas fa-exclamation-triangle fa-3x text-warning mb-3"></i>
+                                <p class="text-muted">No successful imports found.</p>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

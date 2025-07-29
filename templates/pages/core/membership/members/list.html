@@ -7,13 +7,10 @@
     <!-- Header -->
     {% include "pages/core/membership/partials/member-list/header.html" %}
 
-
-    {% include "pages/core/membership/partials/member-list/toolbar.html" %}
-
     <!-- Member List Container -->
     <div id="member-list-container"
          hx-get="{% url 'membership:members_list' %}"
-         hx-trigger="load" class="flex flex-col flex-1 pb-8">
+         hx-trigger="load" class="flex flex-col flex-1 pb-4 max-w-full max-h-full overflow-y-auto">
         <!-- Member list will be loaded here via HTMX -->
         <div class="flex items-center justify-center py-12">
             <div class="text-center">
@@ -31,6 +28,7 @@
 {% block modals %}
     {% include "pages/core/membership/partials/member-list/new-modal.html" with modal_id="new-member-modal" %}
     {% include "pages/core/membership/partials/member-list/edit-modal.html" with modal_id="edit-member-modal" %}
+    {% include "pages/core/membership/partials/member-list/import-modal.html" with modal_id="import-member-modal" %}
 {% endblock %}
 
 
@@ -38,11 +36,18 @@
     <script>
         const $newMemberModalElement = document.getElementById('new-member-modal');
         const $editMemberModalElement = document.getElementById('edit-member-modal');
+        const $importModalElement = document.getElementById('import-member-modal');
+        const $exportModalElement = document.getElementById('export-modal');
+        
         const newModalInstanceOptions = {id: 'new-member-modal', override: true};
         const editModalInstanceOptions = {id: 'edit-member-modal', override: true};
+        const importModalInstanceOptions = {id: 'import-member-modal', override: true};
+        const exportModalInstanceOptions = {id: 'export-modal', override: true};
 
         const new_modal = new Modal($newMemberModalElement, modalOptions, newModalInstanceOptions);
         const edit_modal = new Modal($editMemberModalElement, modalOptions, editModalInstanceOptions);
+        const import_modal = new Modal($importModalElement, modalOptions, importModalInstanceOptions);
+        const export_modal = new Modal($exportModalElement, modalOptions, exportModalInstanceOptions);
 
     </script>
 {% endblock %}

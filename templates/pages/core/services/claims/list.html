@@ -39,6 +39,8 @@
 {% block modals %}
     {% include "pages/core/services/partials/claim-list/new-modal.html" with modal_id="new-claim-modal" %}
     {% include "pages/core/services/partials/claim-list/edit-modal.html" with modal_id="edit-claim-modal" %}
+    {% include "components/modals/import-modal.html" with modal_id="import-modal" %}
+    {% include "components/modals/export-modal.html" with modal_id="export-modal" %}
 {% endblock %}
 
 {% block extra_js %}
@@ -47,6 +49,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize modals
     const $newClaimModalElement = document.getElementById('new-claim-modal');
     const $editClaimModalElement = document.getElementById('edit-claim-modal');
+    const $importModalElement = document.getElementById('import-modal');
+    const $exportModalElement = document.getElementById('export-modal');
     
     const modalOptions = {
         placement: 'bottom-right',
@@ -66,13 +70,19 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const newModalInstanceOptions = {id: 'new-claim-modal', override: true};
     const editModalInstanceOptions = {id: 'edit-claim-modal', override: true};
+    const importModalInstanceOptions = {id: 'import-modal', override: true};
+    const exportModalInstanceOptions = {id: 'export-modal', override: true};
 
     const new_modal = new Modal($newClaimModalElement, modalOptions, newModalInstanceOptions);
     const edit_modal = new Modal($editClaimModalElement, modalOptions, editModalInstanceOptions);
+    const import_modal = new Modal($importModalElement, modalOptions, importModalInstanceOptions);
+    const export_modal = new Modal($exportModalElement, modalOptions, exportModalInstanceOptions);
 
     // Make modals globally available
     window.new_modal = new_modal;
     window.edit_modal = edit_modal;
+    window.import_modal = import_modal;
+    window.export_modal = export_modal;
 
     // Auto-refresh quick stats every 30 seconds
     setInterval(function() {

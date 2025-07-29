@@ -1,0 +1,27 @@
+<div class="bg-white rounded-lg shadow-sm border p-3">
+    <div class="grid grid-cols-4 gap-4 text-center">
+        <!-- Total Services -->
+        <div>
+            <div class="text-lg font-bold text-indigo-600">{{ total_services|default:0 }}</div>
+            <div class="text-xs text-gray-500">Total</div>
+        </div>
+        
+        <!-- Active Services -->
+        <div>
+            <div class="text-lg font-bold text-green-600">{{ active_services|default:0 }}</div>
+            <div class="text-xs text-gray-500">Active</div>
+        </div>
+        
+        <!-- Inactive Services -->
+        <div>
+            <div class="text-lg font-bold text-gray-600">{{ inactive_services|default:0 }}</div>
+            <div class="text-xs text-gray-500">Inactive</div>
+        </div>
+        
+        <!-- Service Categories -->
+        <div>
+            <div class="text-lg font-bold text-blue-600">{{ service_categories|default:0 }}</div>
+            <div class="text-xs text-gray-500">Categories</div>
+        </div>
+    </div>
+</div>

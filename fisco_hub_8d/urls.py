@@ -25,6 +25,7 @@ urlpatterns = [
     path('auth/', include('authentication.urls')),
     path('core/', include('configurations.urls', namespace='configurations')),
     path('core/membership/', include('membership.urls', namespace='membership')),
+    path('core/services/', include('services.urls', namespace='services')),
     path('login/', lambda request: redirect('authentication:login')),
     path('', lambda request: redirect('configurations:dashboard')),
 ]

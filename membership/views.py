@@ -1,14 +1,22 @@
+import csv
+import io
+import pandas as pd
 from django.db import models
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import JsonResponse, HttpResponse
-from django.views.generic import TemplateView, ListView, DetailView, CreateView, UpdateView
+from django.views import View
+from django.views.generic import TemplateView, ListView, DetailView, CreateView, UpdateView, FormView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy
 from django.db.models import Q, Count, Sum
 from django.core.paginator import Paginator
 from django.contrib import messages
 from django.utils import timezone
+from django.views.decorators.http import require_http_methods
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
 
+from configurations.forms import MemberImportForm
 from configurations.models.member import Member
 from fisco_hub_8d import settings
 from membership.forms import MemberForm, BeneficiaryForm, TopUpForm
@@ -184,6 +192,206 @@ class MemberUpdateView(LoginRequiredMixin, NotificationMixin, UpdateView):
         return context
 
 
+class MemberImportView(LoginRequiredMixin, NotificationMixin, FormView):
+    template_name = 'pages/core/membership/partials/member-list/import-form.html'
+    form_class = MemberImportForm
+    success_url = reverse_lazy('membership:members_list')
+
+    def get_form(self, form_class=None):
+        """Initialize form with proper formats and resources"""
+        from configurations.resources import ValidatedMemberResource
+        from import_export.formats import base_formats
+        
+        if form_class is None:
+            form_class = self.get_form_class()
+        
+        # Initialize form with required parameters for django-import-export
+        form = form_class(
+            formats=[base_formats.CSV, base_formats.XLSX],
+            resources=[ValidatedMemberResource],
+            **self.get_form_kwargs()
+        )
+        return form
+
+    def form_valid(self, form):
+        """Handle file upload and import logic using django-import-export"""
+        from configurations.utils.import_tracker import ImportResultTracker
+        
+        tracker = None
+        try:
+            from configurations.resources import ValidatedMemberResource
+            
+            # Get form data
+            import_file = form.cleaned_data['import_file']
+            input_format = form.cleaned_data['format']
+            validate_membership_numbers = form.cleaned_data.get('validate_membership_numbers', True)
+            auto_generate_missing = form.cleaned_data.get('auto_generate_missing', False)
+            skip_duplicates = form.cleaned_data.get('skip_duplicates', True)
+            
+            # Start tracking the import
+            tracker = ImportResultTracker(import_type='member',
+                user=self.request.user,
+                file_obj=import_file,)
+            import_result = tracker.start_import()
+            
+            # Initialize resource
+            resource = ValidatedMemberResource()
+            
+            # Import the data using django-import-export
+            dataset = input_format.create_dataset(import_file.read())
+            
+            # Perform dry run first to validate
+            result = resource.import_data(
+                dataset, 
+                dry_run=True,
+                validate_membership_numbers=validate_membership_numbers,
+                auto_generate_missing=auto_generate_missing,
+                skip_duplicates=skip_duplicates
+            )
+            
+            if result.has_errors():
+                error_messages = []
+                for row_error in result.row_errors():
+                    error_messages.append(f"Row {row_error[0]}: {', '.join([str(e.error) for e in row_error[1]])}")
+                
+                # Track the failure
+                tracker.fail_import(f"Validation failed: {'; '.join(error_messages[:3])}")
+                
+                self.error_notification(self.request, f"Import validation failed. Errors: {'; '.join(error_messages[:3])}")
+                return self.form_invalid(form)
+            
+            # Perform actual import
+            result = resource.import_data(
+                dataset,
+                dry_run=False,
+                validate_membership_numbers=validate_membership_numbers,
+                auto_generate_missing=auto_generate_missing,
+                skip_duplicates=skip_duplicates
+            )
+            
+            # Process the import result and track it
+            tracker.process_import_export_result(result, dataset)
+            tracker.complete_import(import_result)
+            
+            # Success message
+            message = f"Import completed successfully! {result.totals.get('new', 0)} new members imported, {result.totals.get('update', 0)} updated, {result.totals.get('skip', 0)} skipped."
+            self.success_notification(self.request, message)
+            
+            # Add link to view import results
+            from django.urls import reverse
+            results_url = reverse('configurations:import_result_detail', args=[import_result.id])
+            self.success_notification(self.request, f'<a href="{results_url}" class="btn btn-sm btn-outline-primary ms-2">View Import Details</a>', extra_tags='safe')
+            
+            return super().form_valid(form)
+            
+        except Exception as e:
+            if tracker and 'import_result' in locals():
+                tracker.fail_import(str(e))
+            form.add_error(None, f"Import failed: {str(e)}")
+            return self.form_invalid(form)
+
+    def form_invalid(self, form):
+        """Handle form validation errors"""
+        print('form errors', form.errors)
+        return super().form_invalid(form)
+
+class MemberExportView(LoginRequiredMixin, NotificationMixin, FormView):
+
+    def post(self, request, *args, **kwargs):
+        """Process member export"""
+        from configurations.resources import ValidatedMemberResource
+        from import_export.formats import base_formats
+
+        try:
+            export_format = request.POST.get('export_format', 'csv')
+            include_inactive = request.POST.get('include_inactive') == 'on'
+            date_from = request.POST.get('date_from')
+            date_to = request.POST.get('date_to')
+
+            # Get queryset
+            queryset = Member.objects.all()
+
+            if not include_inactive:
+                queryset = queryset.filter(status='A')
+
+            if date_from:
+                queryset = queryset.filter(date_joined__gte=date_from)
+
+            if date_to:
+                queryset = queryset.filter(date_joined__lte=date_to)
+
+            # Export data
+            resource = ValidatedMemberResource()
+            dataset = resource.export(queryset)
+
+            # Determine format and content type
+            if export_format == 'excel':
+                format_class = base_formats.XLSX()
+                content_type = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                file_extension = 'xlsx'
+            else:
+                format_class = base_formats.CSV()
+                content_type = 'text/csv'
+                file_extension = 'csv'
+
+            export_data = format_class.export_data(dataset)
+
+            # Create response
+            response = HttpResponse(export_data, content_type=content_type)
+            filename = f"members_export_{timezone.now().strftime('%Y%m%d_%H%M%S')}.{file_extension}"
+            response['Content-Disposition'] = f'attachment; filename="{filename}"'
+
+            return response
+
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'message': f"Export failed: {str(e)}"
+            })
+
+
+class MemberSampleTemplate(LoginRequiredMixin, NotificationMixin, View):
+    def get(self, request, *args, **kwargs):
+        """Download sample template for member import"""
+        sample_data = [
+            {
+                'name': 'John Doe',
+                'email': 'john.doe@example.com',
+                'phone': '+1234567890',
+                'national_id_number': '12345678901',
+                'address': '123 Main St, City, Country',
+                'date_of_birth': '1990-01-01',
+                'gender': 'M',
+                'marital_status': 'S'
+            },
+            {
+                'name': 'Jane Smith',
+                'email': 'jane.smith@example.com',
+                'phone': '+1234567891',
+                'national_id_number': '12345678902',
+                'address': '456 Oak Ave, City, Country',
+                'date_of_birth': '1985-05-15',
+                'gender': 'F',
+                'marital_status': 'M'
+            }
+        ]
+
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="members_import_template.csv"'
+
+        writer = csv.DictWriter(response, fieldnames=sample_data[0].keys())
+        writer.writeheader()
+        
+        # Create CSV content
+        output = io.StringIO()
+        writer = csv.writer(output)
+        writer.writerows(sample_data)
+        
+        response = HttpResponse(output.getvalue(), content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="members_import_template.csv"'
+        
+        return response
+
 # Additional utility views for HTMX interactions
 
 def member_search_suggestions(request):
@@ -320,7 +528,7 @@ class BeneficiaryListView(LoginRequiredMixin, NotificationMixin, ListView):
             )
         
         return queryset.order_by('-created_at')
-    
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         
@@ -335,6 +543,23 @@ class BeneficiaryListView(LoginRequiredMixin, NotificationMixin, ListView):
         context['dependent_count'] = Beneficiary.objects.filter(type='D').count()
         
         return context
+
+
+@require_http_methods(["GET"])
+def members_export(request):
+    """HTMX endpoint for member export modal"""
+    return render(request, 'components/modals/export-modal.html', {
+        'modal_title': 'Export Members',
+        'export_url': reverse_lazy('membership:members_export_process'),
+        'entity_name': 'members'
+    })
+
+
+
+
+
+
+
 
 
 class BeneficiaryDetailView(LoginRequiredMixin, NotificationMixin, DetailView):

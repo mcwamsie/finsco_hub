@@ -165,87 +165,43 @@
         </div>
     </div>
 
-    <!-- Mobile Overlay -->
-    <div id="overlay" class="fixed inset-0 bg-black bg-opacity-50 z-10 hidden lg:hidden" onclick="toggleSidebar()"></div>
-
-    <!-- Toast Notifications Container -->
-    <div id="toast-container" class="fixed top-4 right-4 z-50 space-y-2">
-        <!-- Toast notifications will be dynamically added here -->
-    </div>
-
-    <!-- Messages -->
-    {% if messages %}
-        <div id="messages" class="fixed top-4 right-4 z-50 space-y-2">
-            {% for message in messages %}
-                <div class="px-4 py-3 rounded-lg text-white transform transition-all duration-300 shadow-lg {% if message.tags == 'success' %}bg-green-500{% elif message.tags == 'error' %}bg-red-500{% elif message.tags == 'warning' %}bg-yellow-500{% else %}bg-blue-500{% endif %}">
-                    <div class="flex items-center gap-2">
-                        {% if message.tags == 'success' %}
-                            <i class="bi bi-check-circle"></i>
-                        {% elif message.tags == 'error' %}
-                            <i class="bi bi-exclamation-circle"></i>
-                        {% elif message.tags == 'warning' %}
-                            <i class="bi bi-exclamation-triangle"></i>
-                        {% else %}
-                            <i class="bi bi-info-circle"></i>
-                        {% endif %}
-                        {{ message }}
-                        <button onclick="this.parentElement.parentElement.remove()" class="ml-auto text-white hover:text-gray-200">
-                            <i class="bi bi-x"></i>
-                        </button>
-                    </div>
-                </div>
-            {% endfor %}
-        </div>
-    {% endif %}
-
+    {% include "layouts/messages.html" %}
     <!-- Flowbite JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.js"></script>
 
     <script>
-        function toggleSidebar() {
-            const sidebar = document.getElementById('sidebar');
-            const overlay = document.getElementById('overlay');
 
-            if (sidebar.classList.contains('-translate-x-full')) {
-                sidebar.classList.remove('-translate-x-full');
-                sidebar.classList.add('translate-x-0');
-                overlay.classList.remove('hidden');
-            } else {
-                sidebar.classList.add('-translate-x-full');
-                sidebar.classList.remove('translate-x-0');
-                overlay.classList.add('hidden');
+       document.body.addEventListener('htmx:beforeRequest', function (evt) {
+            const form = evt.target;
+            const submitBtn = form.querySelector('.submit-btn');
+            const inputs = form.querySelectorAll('input, select, textarea');
+
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.querySelector('.btn-text').classList.add('hidden');
+                submitBtn.querySelector('.btn-loading').classList.remove('hidden');
             }
-        }
 
-        // Handle window resize
-        window.addEventListener('resize', function() {
-            const sidebar = document.getElementById('sidebar');
-            const overlay = document.getElementById('overlay');
-
-            if (window.innerWidth >= 1024) {
-                sidebar.classList.remove('-translate-x-full');
-                sidebar.classList.add('translate-x-0');
-                overlay.classList.add('hidden');
-            } else {
-                sidebar.classList.add('-translate-x-full');
-                sidebar.classList.remove('translate-x-0');
-                overlay.classList.add('hidden');
-            }
+            inputs.forEach(input => {
+                input.disabled = true;
+            });
         });
 
-        // Close sidebar when clicking outside
-        document.addEventListener('click', function(event) {
-            const sidebar = document.getElementById('sidebar');
-            const menuBtn = document.querySelector('[onclick="toggleSidebar()"]');
+        document.body.addEventListener('htmx:afterRequest', function (evt) {
+            const form = evt.target;
+            const submitBtn = form.querySelector('.submit-btn');
+            const inputs = form.querySelectorAll('input, select, textarea');
 
-            if (window.innerWidth < 1024 &&
-                !sidebar.contains(event.target) &&
-                menuBtn && !menuBtn.contains(event.target) &&
-                !sidebar.classList.contains('-translate-x-full')) {
-                toggleSidebar();
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.querySelector('.btn-text').classList.remove('hidden');
+                submitBtn.querySelector('.btn-loading').classList.add('hidden');
             }
-        });
 
+            inputs.forEach(input => {
+                input.disabled = false;
+            });
+        });
         // Auto-hide messages
         document.addEventListener('DOMContentLoaded', function() {
             const messages = document.getElementById('messages');
@@ -373,10 +329,6 @@
 
         window.addEventListener('online', updateConnectionStatus);
         window.addEventListener('offline', updateConnectionStatus);
-
-        // Expose utility functions globally
-        window.showToast = showToast;
-        window.updateSaveStatus = updateSaveStatus;
     </script>
 
     {% block extra_js %}{% endblock %}

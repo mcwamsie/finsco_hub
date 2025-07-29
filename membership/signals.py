@@ -75,3 +75,64 @@ def process_successful_topup(sender, instance, created, **kwargs):
 
         except Exception as e:
             logger.error(f"Failed to process top-up {instance.top_up_number}: {str(e)}")
+
+
+@receiver(post_save, sender=TopUp)
+def create_payment_method_transactions(sender, instance, created, **kwargs):
+    """Create payment method transactions for top-up amounts and fees"""
+    if not created and instance.status == 'S' and not hasattr(instance, '_pm_transactions_created'):
+        try:
+            from configurations.models import Currency
+            from accounting.models import PaymentMethodAccount, PaymentMethodTransaction
+
+            # Get the payment method used for this top-up
+            payment_method = instance.payment_method
+
+            if payment_method:
+                # Get payment method account
+                try:
+                    currency = Currency.objects.get(is_base_currency=True)
+                except Currency.DoesNotExist:
+                    currency = Currency.objects.filter(is_active=True).first()
+
+                try:
+                    pm_account = PaymentMethodAccount.objects.get(
+                        payment_method=payment_method,
+                        currency=currency
+                    )
+
+                    # Create top-up amount transaction (credit to payment method)
+                    if instance.amount > 0:
+                        amount_transaction = PaymentMethodTransaction.objects.create(
+                            account=pm_account,
+                            transaction_type='top_up',
+                            credited_amount=instance.amount,
+                            description=f'Top-up amount from {instance.transaction_number}',
+                            reference_number=instance.transaction_number,
+                            top_up=instance,
+                            status='C'
+                        )
+                        logger.info(f"Created top-up amount transaction {amount_transaction.transaction_number}")
+
+                    # Create processing fee transaction if applicable
+                    if hasattr(instance, 'processing_fee') and instance.processing_fee > 0:
+                        fee_transaction = PaymentMethodTransaction.objects.create(
+                            account=pm_account,
+                            transaction_type='top_up_fee',
+                            credited_amount=instance.processing_fee,
+                            processing_fee=instance.processing_fee,
+                            description=f'Top-up processing fee from {instance.transaction_number}',
+                            reference_number=instance.transaction_number,
+                            top_up=instance,
+                            status='C'
+                        )
+                        logger.info(f"Created top-up fee transaction {fee_transaction.transaction_number}")
+
+                    # Mark as processed
+                    instance._pm_transactions_created = True
+
+                except PaymentMethodAccount.DoesNotExist:
+                    logger.error(f"Payment method account not found for {payment_method.name}")
+
+        except Exception as e:
+            logger.error(f"Failed to create payment method transactions: {str(e)}")

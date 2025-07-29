@@ -1,0 +1,260 @@
+<div class="bg-white px-4 py-3 border-b text-sm">
+    <div class="flex md:items-center md:justify-between flex-col md:flex-row gap-3">
+        <div class="relative w-full md:w-1/2 xl:w-1/3 2xl:w-1/4">
+            <label>
+                <input
+                        type="text"
+                        name="search"
+                        value="{{ search }}"
+                        placeholder="Search service requests..."
+                        hx-get="{% url 'services:requests_list' %}"
+                        hx-target="#request-list-container"
+                        hx-trigger="keyup changed delay:300ms"
+                        hx-include="[name='status'], [name='beneficiary']"
+                        class="pl-10 pr-4 py-2 border border-gray-300 w-full rounded-sm focus:ring-1 focus:ring-blue-500 focus:border-transparent">
+            </label>
+            <i class="bi bi-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+        </div>
+        <div class="flex items-center space-x-4">
+            <label>
+                <select
+                        name="status"
+                        hx-get="{% url 'services:requests_list' %}"
+                        hx-target="#request-list-container"
+                        hx-trigger="change"
+                        hx-include="[name='search'], [name='beneficiary']"
+                        class="px-3 py-2 border border-gray-300 rounded-sm focus:ring-1 focus:ring-blue-500">
+                    <option value="">All Status</option>
+                    {% for value, label in status_choices %}
+                        <option value="{{ value }}"
+                                {% if status_filter == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+
+            <label>
+                <select
+                        name="beneficiary"
+                        hx-get="{% url 'services:requests_list' %}"
+                        hx-target="#request-list-container"
+                        hx-trigger="change"
+                        hx-include="[name='search'], [name='status']"
+                        class="px-3 py-2 border border-gray-300 rounded-sm focus:ring-2 focus:ring-blue-500">
+                    <option value="">All Beneficiaries</option>
+                    {% for beneficiary in beneficiaries %}
+                        <option value="{{ beneficiary.id }}"
+                                {% if beneficiary_filter == beneficiary.id|stringformat:"s" %}selected{% endif %}>{{ beneficiary.name }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+        </div>
+    </div>
+</div>
+<!-- Service Requests List Table -->
+<div class="overflow-auto scrollbar-thin flex-1">
+    <table class="w-full">
+        <thead class="bg-gray-50 border-b">
+        <tr>
+            <th class="w-12 p-3 text-left border-r">#</th>
+            <th class="min-w-48 p-3 text-left border-r">
+                <div class="flex items-center space-x-2">
+                    <i class="bi bi-clipboard-check text-gray-400"></i>
+                    <span class="text-sm font-medium">Request</span>
+                    <i class="bi bi-chevron-down text-gray-400"></i>
+                </div>
+            </th>
+            <th class="min-w-32 p-3 text-left border-r">
+                <div class="flex items-center space-x-2">
+                    <i class="bi bi-person text-gray-400"></i>
+                    <span class="text-sm font-medium">Beneficiary</span>
+                    <i class="bi bi-chevron-down text-gray-400"></i>
+                </div>
+            </th>
+            <th class="min-w-32 p-3 text-left border-r">
+                <div class="flex items-center space-x-2">
+                    <i class="bi bi-gear text-gray-400"></i>
+                    <span class="text-sm font-medium">Service</span>
+                    <i class="bi bi-chevron-down text-gray-400"></i>
+                </div>
+            </th>
+            <th class="min-w-32 p-3 text-left border-r">
+                <div class="flex items-center space-x-2">
+                    <i class="bi bi-currency-dollar text-gray-400"></i>
+                    <span class="text-sm font-medium">Cost</span>
+                    <i class="bi bi-chevron-down text-gray-400"></i>
+                </div>
+            </th>
+            <th class="min-w-32 p-3 text-left border-r">
+                <div class="flex items-center space-x-2">
+                    <i class="bi bi-circle text-gray-400"></i>
+                    <span class="text-sm font-medium">Status</span>
+                    <i class="bi bi-chevron-down text-gray-400"></i>
+                </div>
+            </th>
+            <th class="min-w-32 p-3 text-left border-r">
+                <div class="flex items-center space-x-2">
+                    <i class="bi bi-calendar text-gray-400"></i>
+                    <span class="text-sm font-medium">Requested Date</span>
+                    <i class="bi bi-chevron-down text-gray-400"></i>
+                </div>
+            </th>
+            <th class="p-3 text-left">
+                <div class="flex items-center space-x-2">
+                    <i class="bi bi-gear text-gray-400"></i>
+                    <span class="text-sm font-medium"></span>
+                </div>
+            </th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for request in requests %}
+            <tr class="border-b hover:bg-gray-50">
+                <td class="py-1.5 px-2 border text-sm text-gray-500 text-end">{{ forloop.counter }}</td>
+                <td class="py-1.5 px-2 border">
+                    <a href="{% url 'services:requests_detail' request.id %}"
+                       class="flex items-center space-x-3 text-sm font-medium">
+                        <div class="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0">
+                            <span class="text-purple-600 font-medium text-sm"><i class="bi bi-clipboard-check"></i></span>
+                        </div>
+                        <div>
+                            <p class="font-medium text-gray-900 whitespace-no-wrap">
+                                Request #{{ request.id }}
+                            </p>
+                            <p class="text-sm text-gray-500">
+                                {{ request.created_at|date:"M d, Y H:i" }}
+                            </p>
+                        </div>
+                    </a>
+                </td>
+                <td class="py-1.5 px-2 border text-end">
+                    <a href="{% url 'membership:beneficiaries_detail' request.beneficiary.membership_number %}"
+                       class="text-blue-600 hover:text-blue-800">
+                        <p class="font-medium text-gray-900">{{ request.beneficiary.name }}</p>
+                        <span class="font-mono text-sm text-gray-500">{{ request.beneficiary.membership_number }}</span>
+                    </a>
+                </td>
+                <td class="py-1.5 px-2 border">
+                    <div class="text-sm">
+                        <p class="text-gray-900">{{ request.service.name }}</p>
+                        <p class="text-gray-500">{{ request.service.category }}</p>
+                    </div>
+                </td>
+                <td class="py-1.5 px-2 border">
+                    <div class="text-sm">
+                        <p class="font-medium text-gray-900">{{ request.estimated_cost|floatformat:2 }}</p>
+                        {% if request.approved_amount %}
+                            <p class="text-green-600">Approved: {{ request.approved_amount|floatformat:2 }}</p>
+                        {% endif %}
+                    </div>
+                </td>
+                <td class="py-1.5 px-2 border">
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                        {% if request.status == 'approved' %}bg-green-100 text-green-800
+                        {% elif request.status == 'pending' %}bg-yellow-100 text-yellow-800
+                        {% elif request.status == 'declined' %}bg-red-100 text-red-800
+                        {% else %}bg-gray-100 text-gray-800{% endif %}">
+                        {{ request.get_status_display }}
+                    </span>
+                </td>
+                <td class="py-1.5 px-2 border">
+                    <div class="text-sm">
+                        <p class="text-gray-900">{{ request.requested_date|date:"M d, Y" }}</p>
+                        <p class="text-gray-500">{{ request.urgency }}</p>
+                    </div>
+                </td>
+                <td class="py-1.5 px-2 border text-center">
+                    <button id="dropdownMenuIconButton" data-dropdown-toggle="dropdownDots-{{ request.id }}"
+                            class="inline-flex items-center p-2 text-sm font-medium text-center text-gray-900 bg-white rounded-sm hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-50"
+                            type="button">
+                        <i class="bi bi-three-dots-vertical"></i>
+                    </button>
+
+                    <!-- Dropdown menu -->
+                    <div id="dropdownDots-{{ request.id }}"
+                         class="z-10 hidden bg-white divide-y divide-gray-100 rounded-sm shadow-lg w-44">
+                        <ul class="py-2 text-sm text-gray-700 text-start"
+                            aria-labelledby="dropdownMenuIconButton">
+                            <li>
+                                <a href="{% url 'services:requests_detail' request.id %}"
+                                   class="group block px-4 py-2 hover:bg-gray-100" title="View Request Details">
+                                    <i class="bi bi-eye text-blue-600 group-hover:text-blue-800"></i>
+                                    <span class="ml-2">View Details</span>
+                                </a>
+                            </li>
+                            <li>
+                                <button
+                                        hx-get="{% url 'services:requests_edit' request.id %}"
+                                        hx-target="#edit-request-modal-container"
+                                        class="group w-full text-left block px-4 py-2 hover:bg-gray-100"
+                                        title="Edit Request">
+                                    <i class="bi bi-pencil text-green-600 group-hover:text-green-800"></i>
+                                    <span class="ml-2">Edit</span>
+                                </button>
+                            </li>
+                            <li>
+                                <button
+                                        onclick="if(confirm('Are you sure you want to delete this request?')) { 
+                                            htmx.ajax('DELETE', '{% url 'services:requests_delete' request.id %}', {target: '#request-list-container'}) 
+                                        }"
+                                        class="group w-full text-left block px-4 py-2 hover:bg-gray-100"
+                                        title="Delete Request">
+                                    <i class="bi bi-trash text-red-600 group-hover:text-red-800"></i>
+                                    <span class="ml-2">Delete</span>
+                                </button>
+                            </li>
+                        </ul>
+                    </div>
+                </td>
+            </tr>
+        {% empty %}
+            <tr>
+                <td colspan="8" class="py-8 text-center text-gray-500">
+                    <i class="bi bi-clipboard-check text-4xl mb-2 block"></i>
+                    No service requests found
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Pagination -->
+{% if is_paginated %}
+    <div class="bg-white px-4 py-3 border-t flex items-center justify-between">
+        <div class="text-sm text-gray-700">
+            Showing {{ page_obj.start_index }} to {{ page_obj.end_index }} of {{ page_obj.paginator.count }} requests
+        </div>
+        <div class="flex space-x-1">
+            {% if page_obj.has_previous %}
+                <button hx-get="{% url 'services:requests_list' %}?page={{ page_obj.previous_page_number }}"
+                        hx-target="#request-list-container"
+                        hx-include="[name='search'], [name='status'], [name='beneficiary']"
+                        class="px-3 py-1 border rounded text-sm hover:bg-gray-50">
+                    Previous
+                </button>
+            {% endif %}
+            
+            {% for num in page_obj.paginator.page_range %}
+                {% if page_obj.number == num %}
+                    <span class="px-3 py-1 bg-blue-500 text-white rounded text-sm">{{ num }}</span>
+                {% else %}
+                    <button hx-get="{% url 'services:requests_list' %}?page={{ num }}"
+                            hx-target="#request-list-container"
+                            hx-include="[name='search'], [name='status'], [name='beneficiary']"
+                            class="px-3 py-1 border rounded text-sm hover:bg-gray-50">
+                        {{ num }}
+                    </button>
+                {% endif %}
+            {% endfor %}
+            
+            {% if page_obj.has_next %}
+                <button hx-get="{% url 'services:requests_list' %}?page={{ page_obj.next_page_number }}"
+                        hx-target="#request-list-container"
+                        hx-include="[name='search'], [name='status'], [name='beneficiary']"
+                        class="px-3 py-1 border rounded text-sm hover:bg-gray-50">
+                    Next
+                </button>
+            {% endif %}
+        </div>
+    </div>
+{% endif %}

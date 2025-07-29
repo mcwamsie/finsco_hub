@@ -1,0 +1,256 @@
+<div class="bg-white px-4 py-3 border-b text-sm">
+    <div class="flex md:items-center md:justify-between flex-col md:flex-row gap-3">
+        <div class="relative w-full md:w-1/2 xl:w-1/3 2xl:w-1/4">
+            <label>
+                <input
+                        type="text"
+                        name="search"
+                        value="{{ search }}"
+                        placeholder="Search services..."
+                        hx-get="{% url 'services:services_list' %}"
+                        hx-target="#service-list-container"
+                        hx-trigger="keyup changed delay:300ms"
+                        hx-include="[name='category'], [name='is_active']"
+                        class="pl-10 pr-4 py-2 border border-gray-300 w-full rounded-sm focus:ring-1 focus:ring-blue-500 focus:border-transparent">
+            </label>
+            <i class="bi bi-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+        </div>
+        <div class="flex items-center space-x-4">
+            <label>
+                <select
+                        name="category"
+                        hx-get="{% url 'services:services_list' %}"
+                        hx-target="#service-list-container"
+                        hx-trigger="change"
+                        hx-include="[name='search'], [name='is_active']"
+                        class="px-3 py-2 border border-gray-300 rounded-sm focus:ring-1 focus:ring-blue-500">
+                    <option value="">All Categories</option>
+                    {% for value, label in category_choices %}
+                        <option value="{{ value }}"
+                                {% if category_filter == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+
+            <label>
+                <select
+                        name="is_active"
+                        hx-get="{% url 'services:services_list' %}"
+                        hx-target="#service-list-container"
+                        hx-trigger="change"
+                        hx-include="[name='search'], [name='category']"
+                        class="px-3 py-2 border border-gray-300 rounded-sm focus:ring-2 focus:ring-blue-500">
+                    <option value="">All Services</option>
+                    <option value="true" {% if is_active_filter == "true" %}selected{% endif %}>Active Only</option>
+                    <option value="false" {% if is_active_filter == "false" %}selected{% endif %}>Inactive Only</option>
+                </select>
+            </label>
+        </div>
+    </div>
+</div>
+<!-- Services List Table -->
+<div class="overflow-auto scrollbar-thin flex-1">
+    <table class="w-full">
+        <thead class="bg-gray-50 border-b">
+        <tr>
+            <th class="w-12 p-3 text-left border-r">#</th>
+            <th class="min-w-48 p-3 text-left border-r">
+                <div class="flex items-center space-x-2">
+                    <i class="bi bi-gear text-gray-400"></i>
+                    <span class="text-sm font-medium">Service</span>
+                    <i class="bi bi-chevron-down text-gray-400"></i>
+                </div>
+            </th>
+            <th class="min-w-32 p-3 text-left border-r">
+                <div class="flex items-center space-x-2">
+                    <i class="bi bi-tag text-gray-400"></i>
+                    <span class="text-sm font-medium">Category</span>
+                    <i class="bi bi-chevron-down text-gray-400"></i>
+                </div>
+            </th>
+            <th class="min-w-32 p-3 text-left border-r">
+                <div class="flex items-center space-x-2">
+                    <i class="bi bi-currency-dollar text-gray-400"></i>
+                    <span class="text-sm font-medium">Cost</span>
+                    <i class="bi bi-chevron-down text-gray-400"></i>
+                </div>
+            </th>
+            <th class="min-w-32 p-3 text-left border-r">
+                <div class="flex items-center space-x-2">
+                    <i class="bi bi-shield text-gray-400"></i>
+                    <span class="text-sm font-medium">Coverage</span>
+                    <i class="bi bi-chevron-down text-gray-400"></i>
+                </div>
+            </th>
+            <th class="min-w-32 p-3 text-left border-r">
+                <div class="flex items-center space-x-2">
+                    <i class="bi bi-circle text-gray-400"></i>
+                    <span class="text-sm font-medium">Status</span>
+                    <i class="bi bi-chevron-down text-gray-400"></i>
+                </div>
+            </th>
+            <th class="min-w-32 p-3 text-left border-r">
+                <div class="flex items-center space-x-2">
+                    <i class="bi bi-clock text-gray-400"></i>
+                    <span class="text-sm font-medium">Waiting Period</span>
+                    <i class="bi bi-chevron-down text-gray-400"></i>
+                </div>
+            </th>
+            <th class="p-3 text-left">
+                <div class="flex items-center space-x-2">
+                    <i class="bi bi-gear text-gray-400"></i>
+                    <span class="text-sm font-medium"></span>
+                </div>
+            </th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for service in services %}
+            <tr class="border-b hover:bg-gray-50">
+                <td class="py-1.5 px-2 border text-sm text-gray-500 text-end">{{ forloop.counter }}</td>
+                <td class="py-1.5 px-2 border">
+                    <a href="{% url 'services:services_detail' service.id %}"
+                       class="flex items-center space-x-3 text-sm font-medium">
+                        <div class="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center flex-shrink-0">
+                            <span class="text-indigo-600 font-medium text-sm"><i class="bi bi-gear"></i></span>
+                        </div>
+                        <div>
+                            <p class="font-medium text-gray-900 whitespace-no-wrap">
+                                {{ service.name }}
+                            </p>
+                            <p class="text-sm text-gray-500">
+                                {{ service.service_type }}
+                            </p>
+                        </div>
+                    </a>
+                </td>
+                <td class="py-1.5 px-2 border">
+                    <div class="text-sm">
+                        <p class="text-gray-900">{{ service.category }}</p>
+                    </div>
+                </td>
+                <td class="py-1.5 px-2 border">
+                    <div class="text-sm">
+                        <p class="font-medium text-gray-900">{{ service.base_cost|floatformat:2 }}</p>
+                        <p class="text-gray-500">Base cost</p>
+                    </div>
+                </td>
+                <td class="py-1.5 px-2 border">
+                    <div class="text-sm">
+                        <p class="text-gray-900">{{ service.coverage_percentage }}%</p>
+                        <p class="text-gray-500">Max: {{ service.max_coverage|floatformat:2 }}</p>
+                    </div>
+                </td>
+                <td class="py-1.5 px-2 border">
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                        {% if service.is_active %}bg-green-100 text-green-800
+                        {% else %}bg-red-100 text-red-800{% endif %}">
+                        {% if service.is_active %}Active{% else %}Inactive{% endif %}
+                    </span>
+                    {% if service.requires_preauth %}
+                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800 ml-1">
+                            Pre-auth
+                        </span>
+                    {% endif %}
+                </td>
+                <td class="py-1.5 px-2 border">
+                    <div class="text-sm">
+                        <p class="text-gray-900">{{ service.waiting_period }} days</p>
+                    </div>
+                </td>
+                <td class="py-1.5 px-2 border text-center">
+                    <button id="dropdownMenuIconButton" data-dropdown-toggle="dropdownDots-{{ service.id }}"
+                            class="inline-flex items-center p-2 text-sm font-medium text-center text-gray-900 bg-white rounded-sm hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-50"
+                            type="button">
+                        <i class="bi bi-three-dots-vertical"></i>
+                    </button>
+
+                    <!-- Dropdown menu -->
+                    <div id="dropdownDots-{{ service.id }}"
+                         class="z-10 hidden bg-white divide-y divide-gray-100 rounded-sm shadow-lg w-44">
+                        <ul class="py-2 text-sm text-gray-700 text-start"
+                            aria-labelledby="dropdownMenuIconButton">
+                            <li>
+                                <a href="{% url 'services:services_detail' service.id %}"
+                                   class="group block px-4 py-2 hover:bg-gray-100" title="View Service Details">
+                                    <i class="bi bi-eye text-blue-600 group-hover:text-blue-800"></i>
+                                    <span class="ml-2">View Details</span>
+                                </a>
+                            </li>
+                            <li>
+                                <button
+                                        hx-get="{% url 'services:services_edit' service.id %}"
+                                        hx-target="#edit-service-modal-container"
+                                        class="group w-full text-left block px-4 py-2 hover:bg-gray-100"
+                                        title="Edit Service">
+                                    <i class="bi bi-pencil text-green-600 group-hover:text-green-800"></i>
+                                    <span class="ml-2">Edit</span>
+                                </button>
+                            </li>
+                            <li>
+                                <button
+                                        onclick="if(confirm('Are you sure you want to delete this service?')) { 
+                                            htmx.ajax('DELETE', '{% url 'services:services_delete' service.id %}', {target: '#service-list-container'}) 
+                                        }"
+                                        class="group w-full text-left block px-4 py-2 hover:bg-gray-100"
+                                        title="Delete Service">
+                                    <i class="bi bi-trash text-red-600 group-hover:text-red-800"></i>
+                                    <span class="ml-2">Delete</span>
+                                </button>
+                            </li>
+                        </ul>
+                    </div>
+                </td>
+            </tr>
+        {% empty %}
+            <tr>
+                <td colspan="8" class="py-8 text-center text-gray-500">
+                    <i class="bi bi-gear text-4xl mb-2 block"></i>
+                    No services found
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Pagination -->
+{% if is_paginated %}
+    <div class="bg-white px-4 py-3 border-t flex items-center justify-between">
+        <div class="text-sm text-gray-700">
+            Showing {{ page_obj.start_index }} to {{ page_obj.end_index }} of {{ page_obj.paginator.count }} services
+        </div>
+        <div class="flex space-x-1">
+            {% if page_obj.has_previous %}
+                <button hx-get="{% url 'services:services_list' %}?page={{ page_obj.previous_page_number }}"
+                        hx-target="#service-list-container"
+                        hx-include="[name='search'], [name='category'], [name='is_active']"
+                        class="px-3 py-1 border rounded text-sm hover:bg-gray-50">
+                    Previous
+                </button>
+            {% endif %}
+            
+            {% for num in page_obj.paginator.page_range %}
+                {% if page_obj.number == num %}
+                    <span class="px-3 py-1 bg-blue-500 text-white rounded text-sm">{{ num }}</span>
+                {% else %}
+                    <button hx-get="{% url 'services:services_list' %}?page={{ num }}"
+                            hx-target="#service-list-container"
+                            hx-include="[name='search'], [name='category'], [name='is_active']"
+                            class="px-3 py-1 border rounded text-sm hover:bg-gray-50">
+                        {{ num }}
+                    </button>
+                {% endif %}
+            {% endfor %}
+            
+            {% if page_obj.has_next %}
+                <button hx-get="{% url 'services:services_list' %}?page={{ page_obj.next_page_number }}"
+                        hx-target="#service-list-container"
+                        hx-include="[name='search'], [name='category'], [name='is_active']"
+                        class="px-3 py-1 border rounded text-sm hover:bg-gray-50">
+                    Next
+                </button>
+            {% endif %}
+        </div>
+    </div>
+{% endif %}

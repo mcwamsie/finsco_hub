@@ -19,6 +19,7 @@
     <style>
         .scrollbar-thin::-webkit-scrollbar {
             width: 4px;
+            height: 4px;
         }
 
         .scrollbar-thin::-webkit-scrollbar-track {
@@ -54,21 +55,21 @@
         }
     </style>
 </head>
-<body class="bg-gray-50 w-full h-full scrollbar-thin">
+<body class="bg-gray-50 w-full h-full scrollbar-thin max-w-full max-h-full overflow-hidden">
 <!-- Main Application -->
-<div class="bg-white w-full h-full flex flex-col pt-14">
+<div class="bg-white w-full h-full flex flex-col pt-16 max-w-full max-h-full overflow-hidden">
     <!-- Top Navigation -->
     {% include "layouts/core/header.html" %}
     <!-- Table Header -->
 
     <aside id="default-sidebar"
-           class="w-[280px] z-40 fixed top-0 lg:top-14 left-0 p-2 bg-gray-50 border-r bottom-0 overflow-y-auto transition-transform -translate-x-full lg:translate-x-0">
+           class="w-[280px] z-40 fixed top-0 lg:top-16 left-0 p-2 bg-gray-50 border-r bottom-0 overflow-y-auto transition-transform -translate-x-full lg:translate-x-0">
         <!-- Views Section -->
         {% block sidebar %}{% endblock %}
     </aside>
 
     <!-- Main Content -->
-    <div class="flex lg:pl-[280px] flex-1 flex-col">
+    <div class="flex lg:pl-[280px] flex-1 flex-col  max-w-full max-h-full overflow-hidden">
         {% block content %}{% endblock %}
     </div>
 </div>
@@ -197,24 +198,38 @@
     };
 </script>
 <script>
-    // Form state management and loading indicators
-    function setupFormField(fieldId) {
-        const field = document.getElementById(fieldId);
-        if (!field) return;
 
-        // Character counter for textarea fields
-        const counter = document.getElementById(fieldId + '-counter');
-        if (field.tagName === 'TEXTAREA' && counter) {
-            // Update counter on load
-            counter.textContent = field.value.length;
+   document.body.addEventListener('htmx:beforeRequest', function (evt) {
+            const form = evt.target;
+            const submitBtn = form.querySelector('.submit-btn');
+            const inputs = form.querySelectorAll('input, select, textarea');
 
-            // Update counter on input
-            field.addEventListener('input', function() {
-                counter.textContent = this.value.length;
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.querySelector('.btn-text').classList.add('hidden');
+                submitBtn.querySelector('.btn-loading').classList.remove('hidden');
+            }
+
+            inputs.forEach(input => {
+                input.disabled = true;
             });
-        }
-    }
+        });
 
+        document.body.addEventListener('htmx:afterRequest', function (evt) {
+            const form = evt.target;
+            const submitBtn = form.querySelector('.submit-btn');
+            const inputs = form.querySelectorAll('input, select, textarea');
+
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.querySelector('.btn-text').classList.remove('hidden');
+                submitBtn.querySelector('.btn-loading').classList.add('hidden');
+            }
+
+            inputs.forEach(input => {
+                input.disabled = false;
+            });
+        });
     // File upload handler with loading states
     function handleFileUpload(fieldId) {
         const fileInput = document.getElementById(fieldId);
@@ -232,7 +247,7 @@
                 uploadArea = parent.querySelector('.file-upload-area');
             }
         }
-        
+
         if (!uploadArea) {
             console.warn(`Upload area not found for field '${fieldId}'`);
             return;
@@ -250,7 +265,7 @@
 
         fileInput.click();
 
-        fileInput.addEventListener('change', function(e) {
+        fileInput.addEventListener('change', function (e) {
             if (e.target.files.length > 0) {
                 // Show loading state only if elements exist
                 if (uploadContent && uploadLoading) {
@@ -282,42 +297,7 @@
         });
     }
 
-    // Global form submission handler
-    function setupFormSubmission() {
-        document.addEventListener('DOMContentLoaded', function() {
-            const forms = document.querySelectorAll('form');
 
-            forms.forEach(form => {
-                form.addEventListener('submit', function(e) {
-                    // Prevent double submission
-                    if (form.classList.contains('submitting')) {
-                        e.preventDefault();
-                        return;
-                    }
-
-                    // Mark form as submitting
-                    form.classList.add('submitting');
-
-                    // Disable all form fields and buttons
-                    disableFormElements(form);
-
-                    // Show loading indicators on submit buttons
-                    showButtonLoading(form);
-
-                    // Disable file upload areas
-                    disableFileUploads(form);
-
-                    // Re-enable after timeout as fallback
-                    setTimeout(() => {
-                        enableFormElements(form);
-                        hideButtonLoading(form);
-                        enableFileUploads(form);
-                        form.classList.remove('submitting');
-                    }, 10000);
-                });
-            });
-        });
-    }
 
     function disableFormElements(form) {
         const elements = form.querySelectorAll('.form-field, button:not([type="button"])');
@@ -366,17 +346,6 @@
         });
     }
 
-    function hideButtonLoading(form) {
-        const submitButtons = form.querySelectorAll('button[type="submit"].loading-state');
-        submitButtons.forEach(button => {
-            const originalContent = button.getAttribute('data-original-content');
-            if (originalContent) {
-                button.innerHTML = originalContent;
-                button.removeAttribute('data-original-content');
-            }
-            button.classList.remove('loading-state');
-        });
-    }
 
     function disableFileUploads(form) {
         const uploadAreas = form.querySelectorAll('.file-upload-area');
@@ -410,17 +379,6 @@
         });
     }
 
-    // Initialize form submission handling
-    setupFormSubmission();
-
-    // Auto-setup character counters and other field-specific functionality
-    document.addEventListener('DOMContentLoaded', function() {
-        // Setup all form fields
-        const textareas = document.querySelectorAll('textarea');
-        textareas.forEach(textarea => {
-            setupFormField(textarea.id);
-        });
-    });
 </script>
 {% block extra_js %}{% endblock %}
 </body>

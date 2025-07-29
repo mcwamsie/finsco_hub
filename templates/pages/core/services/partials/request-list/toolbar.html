@@ -4,7 +4,7 @@
 <div class="bg-white px-4 py-3 border-b flex items-center justify-between">
     <div class="flex items-center gap-4 divide-x divide-gray-400">
         <button
-                hx-get="{% url 'services:service_request_create' %}"
+                hx-get="{% url 'services:requests_create' %}"
                 hx-target="#new-request-modal-container"
                 hx-trigger="click"
                 onclick="new_modal.show()"

@@ -9,7 +9,7 @@ import logging
 
 from .models import (
     Member, Agent, ServiceProvider, ServiceProviderDocument,
-    ServiceProviderTypeRequirement, Currency
+    ServiceProviderTypeRequirement, Currency, PaymentMethod, AgentCommission, Vendor
 )
 from membership.models import Beneficiary
 # from accounts.models import MemberAccount, MemberTransaction, TopUp
@@ -227,6 +227,112 @@ def check_agent_commission_thresholds(sender, instance, created, **kwargs):
             logger.error(f"Failed to check commission thresholds: {str(e)}")
 
 
+@receiver(post_save, sender=Agent)
+def create_agent_account(sender, instance, created, **kwargs):
+    """Create agent account when agent is created"""
+    if created:
+        try:
+            from accounting.models import AgentAccount
+
+            # Get default currency (base currency)
+            try:
+                currency = Currency.objects.get(is_base_currency=True)
+            except Currency.DoesNotExist:
+                currency = Currency.objects.filter(is_active=True).first()
+
+            if currency:
+                account, account_created = AgentAccount.objects.get_or_create(
+                    agent=instance,
+                    currency=currency,
+                    defaults={
+                        'current_balance': Decimal('0.00'),
+                        'available_balance': Decimal('0.00'),
+                        'commission_balance': Decimal('0.00'),
+                        'status': 'A'
+                    }
+                )
+
+                if account_created:
+                    logger.info(f"Created account for agent {instance.name}")
+
+        except Exception as e:
+            logger.error(f"Failed to create agent account for {instance.name}: {str(e)}")
+
+
+@receiver(post_save, sender=PaymentMethod)
+def create_payment_method_account(sender, instance, created, **kwargs):
+    """Create payment method account when payment method is created"""
+    if created:
+        try:
+            from accounting.models import PaymentMethodAccount
+
+            # Get default currency (base currency)
+            try:
+                currency = Currency.objects.get(is_base_currency=True)
+            except Currency.DoesNotExist:
+                currency = Currency.objects.filter(is_active=True).first()
+
+            if currency:
+                account, account_created = PaymentMethodAccount.objects.get_or_create(
+                    payment_method=instance,
+                    currency=currency,
+                    defaults={
+                        'current_balance': Decimal('0.00'),
+                        'available_balance': Decimal('0.00'),
+                        'pending_balance': Decimal('0.00'),
+                        'status': 'A'
+                    }
+                )
+
+                if account_created:
+                    logger.info(f"Created account for payment method {instance.name}")
+
+        except Exception as e:
+            logger.error(f"Failed to create payment method account for {instance.name}: {str(e)}")
+
+
+@receiver(post_save, sender=AgentCommission)
+def create_agent_commission_transaction(sender, instance, created, **kwargs):
+    """Create agent transaction when commission is calculated"""
+    if not created and instance.status == 'C' and not hasattr(instance, '_transaction_created'):
+        try:
+            from accounting.models import AgentAccount, AgentTransaction
+
+            # Get agent account
+            try:
+                currency = Currency.objects.get(is_base_currency=True)
+            except Currency.DoesNotExist:
+                currency = Currency.objects.filter(is_active=True).first()
+
+            agent_account = AgentAccount.objects.get(
+                agent=instance.agent,
+                currency=currency
+            )
+
+            # Create commission transaction
+            transaction = AgentTransaction.objects.create(
+                account=agent_account,
+                transaction_type='commission_earned',
+                credited_amount=instance.commission_amount,
+                description=f'Commission earned for {instance.commission_type}',
+                reference_number=instance.commission_number,
+                agent_commission=instance,
+                commission_period_from=instance.period_from,
+                commission_period_to=instance.period_to,
+                status='C'
+            )
+
+            # Mark commission as processed to prevent duplicate transactions
+            instance._transaction_created = True
+            
+            logger.info(f"Created commission transaction {transaction.transaction_number} for agent {instance.agent.name}")
+
+        except AgentAccount.DoesNotExist:
+            logger.error(f"Agent account not found for agent {instance.agent.name}")
+        except Exception as e:
+            logger.error(f"Failed to create commission transaction: {str(e)}")
+
+
 @receiver(post_save, sender=ServiceProvider)
 def create_provider_account(sender, instance, created, **kwargs):
     """Create provider account when service provider is created"""
@@ -360,3 +466,66 @@ def check_member_kyc_completion(sender, instance, created, **kwargs):
 
         except Exception as e:
             logger.error(f"Failed to check KYC completion: {str(e)}")
+
+
+# Vendor Creation Signals
+
+@receiver(post_save, sender=ServiceProvider)
+def create_vendor_for_service_provider(sender, instance, created, **kwargs):
+    """Create vendor record when service provider is created"""
+    if created:
+        try:
+            from django.contrib.contenttypes.models import ContentType
+            
+            content_type = ContentType.objects.get_for_model(ServiceProvider)
+            
+            vendor, vendor_created = Vendor.objects.get_or_create(
+                content_type=content_type,
+                object_id=instance.id,
+                defaults={
+                    'vendor_type': 'SP',
+                    'vendor_name': instance.name,
+                    'contact_person': instance.contact_person,
+                    'email': instance.email,
+                    'phone': instance.phone,
+                    'preferred_payment_method': instance.payment_method,
+                    'tax_id': instance.tax_id,
+                    'is_active': instance.status == 'A'
+                }
+            )
+            
+            if vendor_created:
+                logger.info(f"Created vendor record {vendor.vendor_code} for service provider {instance.name}")
+                
+        except Exception as e:
+            logger.error(f"Failed to create vendor for service provider {instance.name}: {str(e)}")
+
+
+@receiver(post_save, sender=Agent)
+def create_vendor_for_agent(sender, instance, created, **kwargs):
+    """Create vendor record when agent is created"""
+    if created:
+        try:
+            from django.contrib.contenttypes.models import ContentType
+            
+            content_type = ContentType.objects.get_for_model(Agent)
+            
+            vendor, vendor_created = Vendor.objects.get_or_create(
+                content_type=content_type,
+                object_id=instance.id,
+                defaults={
+                    'vendor_type': 'AG',
+                    'vendor_name': instance.name,
+                    'contact_person': instance.name,
+                    'email': instance.email,
+                    'phone': instance.phone,
+                    'preferred_payment_method': instance.preferred_payment_method,
+                    'is_active': instance.status == 'A'
+                }
+            )
+            
+            if vendor_created:
+                logger.info(f"Created vendor record {vendor.vendor_code} for agent {instance.name}")
+                
+        except Exception as e:
+            logger.error(f"Failed to create vendor for agent {instance.name}: {str(e)}")

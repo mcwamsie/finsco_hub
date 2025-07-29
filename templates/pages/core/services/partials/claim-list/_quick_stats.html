@@ -1,0 +1,27 @@
+<div class="bg-white rounded-lg shadow-sm border p-3">
+    <div class="grid grid-cols-4 gap-4 text-center">
+        <!-- Total Claims -->
+        <div>
+            <div class="text-lg font-bold text-blue-600">{{ total_claims|default:0 }}</div>
+            <div class="text-xs text-gray-500">Total</div>
+        </div>
+        
+        <!-- New Claims -->
+        <div>
+            <div class="text-lg font-bold text-green-600">{{ new_claims|default:0 }}</div>
+            <div class="text-xs text-gray-500">New</div>
+        </div>
+        
+        <!-- Approved Claims -->
+        <div>
+            <div class="text-lg font-bold text-emerald-600">{{ approved_claims|default:0 }}</div>
+            <div class="text-xs text-gray-500">Approved</div>
+        </div>
+        
+        <!-- Rejected Claims -->
+        <div>
+            <div class="text-lg font-bold text-red-600">{{ rejected_claims|default:0 }}</div>
+            <div class="text-xs text-gray-500">Rejected</div>
+        </div>
+    </div>
+</div>
